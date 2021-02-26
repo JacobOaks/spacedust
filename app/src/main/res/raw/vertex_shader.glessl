@@ -1,0 +1,28 @@
+
+attribute vec2 vertex_position;
+
+uniform float obj_x;
+uniform float obj_y;
+uniform float cam_x;
+uniform float cam_y;
+uniform float cam_zoom;
+uniform float aspect_ratio;
+
+void main() {
+
+    // apply object position
+    vec2 pos = vertex_position + vec2(obj_x, obj_y);
+
+    // apply camera pos and zoom
+    pos -= vec2(cam_x, cam_y);
+    pos *= cam_zoom;
+
+    // apply aspect ratio
+    if  (aspect_ratio < 1.0f)
+        pos.y *= aspect_ratio;
+    else
+        pos.x /= aspect_ratio;
+
+    // set final position
+    gl_Position = vec4(pos.x, pos.y, 0, 1);
+}
