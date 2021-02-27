@@ -1,14 +1,25 @@
 
+// attributes
 attribute vec2 vertex_position;
+attribute vec2 tex_coords;
+varying vec2 tex_coords_f;
 
+// object uniforms
 uniform float obj_x;
 uniform float obj_y;
+
+// camera uniforms
 uniform float cam_x;
 uniform float cam_y;
 uniform float cam_zoom;
+
+// other uniforms
 uniform float aspect_ratio;
 
 void main() {
+
+    // pass through texture coordinates
+    tex_coords_f = tex_coords;
 
     // apply object position
     vec2 pos = vertex_position + vec2(obj_x, obj_y);

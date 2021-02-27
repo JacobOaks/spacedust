@@ -3,6 +3,10 @@ package svenske.spacedust.utils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
 
 public class Utils {
 
@@ -27,4 +31,25 @@ public class Utils {
         }
     }
 
+    public static FloatBuffer get_float_buffer_from(float[] values) {
+
+        // Num coordinates * 4 bytes per float
+        ByteBuffer bb = ByteBuffer.allocateDirect(values.length * 4);
+        bb.order(ByteOrder.nativeOrder()); // use the device hardware's native byte order
+        FloatBuffer fb = bb.asFloatBuffer(); // create float buffer from byte buffer
+        fb.put(values); // add coordinates to float buffer
+        fb.position(0); // set buffer to read first position
+        return fb;
+    }
+
+    public static ShortBuffer get_short_buffer_from(short[] values) {
+
+        // Num coordinates * 2 bytes per short
+        ByteBuffer bb = ByteBuffer.allocateDirect(values.length * 2);
+        bb.order(ByteOrder.nativeOrder()); // use the device hardware's native byte order
+        ShortBuffer sb = bb.asShortBuffer(); // create short buffer from byte buffer
+        sb.put(values); // add coordinates to short buffer
+        sb.position(0); // set buffer to read first position
+        return sb;
+    }
 }

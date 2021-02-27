@@ -12,8 +12,8 @@ import svenske.spacedust.utils.Node;
  */
 public class GameView extends GLSurfaceView {
 
-    private final GameRenderer game_renderer;
-    private final ScaleGestureDetector sgd;
+    private final GameRenderer game_renderer; // Renders GL onto this view
+    private final ScaleGestureDetector sgd;   // Detects scaling gestures
 
     /**
      * Creates the OpenGL ES context and the renderer.

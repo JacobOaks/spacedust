@@ -13,9 +13,12 @@ import svenske.spacedust.stages.Stage;
 import svenske.spacedust.stages.WorldStage;
 import svenske.spacedust.utils.Node;
 
+/**
+ * Renders on a GLSurfaceView. Is the connecting piece between Android and the current Stage.
+ */
 public class GameRenderer implements GLSurfaceView.Renderer {
 
-    private Stage stage;
+    private Stage stage; // The current stage
 
     /**
      * Whenever the surface is created, initialize GL and the current Stage.
@@ -38,7 +41,6 @@ public class GameRenderer implements GLSurfaceView.Renderer {
         // Enable gl transparencies
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_BLEND);
-
     }
 
     /**
@@ -85,18 +87,14 @@ public class GameRenderer implements GLSurfaceView.Renderer {
      * Called whenever any random input occurs that wasn't previously handled as a gesture
      * @return true if the input should be not be responded to further, false otherwise
      */
-    public boolean other_input(MotionEvent me) {
-        return this.stage.other_input(me);
-    }
+    public boolean other_input(MotionEvent me) { return this.stage.other_input(me); }
 
     /**
      * Performs timekeeping calculations and updates the current Stage
      */
     private void update() {
 
-        /**
-         * TODO: Delta calculations.
-         */
+        // TODO: Delta calculations
 
         this.stage.update(0f);
     }
@@ -104,15 +102,11 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     /**
      * Renders the current Stage
      */
-    private void render() {
-        this.stage.render();
-    }
+    private void render() { this.stage.render(); }
 
     /**
      * @return continuous data from the Stage to be passed up to be saved across OpenGL ES context
      *         changes.
      */
-    public Node get_continuous_data() {
-        return this.stage.get_continuous_data();
-    }
+    public Node get_continuous_data() { return this.stage.get_continuous_data(); }
 }

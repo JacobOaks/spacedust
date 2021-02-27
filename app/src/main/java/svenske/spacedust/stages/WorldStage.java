@@ -4,9 +4,14 @@ import android.opengl.GLES20;
 import android.util.Log;
 import android.view.MotionEvent;
 
+import org.w3c.dom.Text;
+
 import svenske.spacedust.R;
+import svenske.spacedust.graphics.BlendMode;
+import svenske.spacedust.graphics.Camera;
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
+import svenske.spacedust.graphics.TextureAtlas;
 import svenske.spacedust.utils.Node;
 
 /**
@@ -14,7 +19,8 @@ import svenske.spacedust.utils.Node;
  */
 public class WorldStage implements Stage {
 
-    Sprite sprite;
+    Sprite[] sprites;
+    Camera camera;
     ShaderProgram shader_program;
 
     @Override
@@ -26,7 +32,21 @@ public class WorldStage implements Stage {
             // TODO: Starting from scratch
         }
 
-        this.sprite = new Sprite(new float[] {0.9f, 0.1f, 0.9f, 1.0f}, null, null);
+        TextureAtlas atlas  = new TextureAtlas(R.drawable.example_atlas, 1, 1);
+        float[] color       = new float[] { 0.6f, 0.0f, 0.0f, 0.7f };
+
+        this.sprites = new Sprite[6];
+        for (int i = 0; i < this.sprites.length; i++) {
+            this.sprites[i] = new Sprite(
+                    atlas,
+                    0,
+                    0,
+                    color,
+                    BlendMode.values()[i],
+                    null,
+                    null);
+        }
+        this.camera = new Camera(0f, 0f, 0.33f);
         this.shader_program = new ShaderProgram(R.raw.vertex_shader, R.raw.fragment_shader);
     }
 
@@ -42,13 +62,8 @@ public class WorldStage implements Stage {
 
     @Override
     public void update(float dt) {
-
-        /**
-         * TODO: Update World
-         * TODO: Update HUD
-         */
-
-        this.sprite.update(dt);
+        for (int i = 0; i < this.sprites.length; i++)
+            this.sprites[i].update(dt);
     }
 
     @Override
@@ -57,22 +72,17 @@ public class WorldStage implements Stage {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
         this.shader_program.bind();
-        this.shader_program.set_uniform("cam_x", 1f);
-        this.shader_program.set_uniform("cam_y", 1f);
-        this.shader_program.set_uniform("cam_zoom", 0.5f);
+        this.camera.set_uniforms(this.shader_program);
 
-        /**
-         * TODO: Render World
-         * TODO: Render HUD
-         */
-
-        this.sprite.render(this.shader_program, 0f, 0f);
+        for (int i = 0; i < this.sprites.length; i++) {
+            this.sprites[i].render(this.shader_program,
+                    -5f + 2f * (float)i, 0f);
+        }
         ShaderProgram.unbind_any_shader_program();
     }
 
     @Override
     public void resize(float width, float height) {
-        Log.d("spdt/worldstage", "new aspect ratio: " + (width / height));
         this.shader_program.bind();
         this.shader_program.set_uniform("aspect_ratio", (width / height));
         ShaderProgram.unbind_any_shader_program();
@@ -80,9 +90,6 @@ public class WorldStage implements Stage {
 
     @Override
     public Node get_continuous_data() {
-
-        //TODO: Return important information from the World and/or HUD
-
         return null;
     }
 }

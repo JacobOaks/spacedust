@@ -68,8 +68,11 @@ public class ShaderProgram {
     }
 
     public void set_uniform(String name, float value) {
-        int loc = this.get_uniform_location(name);
-        GLES20.glUniform1f(loc, value);
+        GLES20.glUniform1f(this.get_uniform_location(name), value);
+    }
+
+    public void set_uniform(String name, int value) {
+        GLES20.glUniform1i(this.get_uniform_location(name), value);
     }
 
     public static void unbind_any_shader_program() {
