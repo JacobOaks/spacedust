@@ -1,24 +1,15 @@
 package svenske.spacedust.stages;
 
 import android.opengl.GLES20;
-import android.util.Log;
 import android.view.MotionEvent;
 
-import org.w3c.dom.Text;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import svenske.spacedust.R;
-import svenske.spacedust.graphics.AnimatedSprite;
-import svenske.spacedust.graphics.Animation;
 import svenske.spacedust.graphics.BlendMode;
 import svenske.spacedust.graphics.Camera;
 import svenske.spacedust.graphics.Font;
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
 import svenske.spacedust.graphics.TextSprite;
-import svenske.spacedust.graphics.TextureAtlas;
 import svenske.spacedust.utils.Node;
 import svenske.spacedust.utils.Transform;
 
@@ -42,7 +33,7 @@ public class WorldStage implements Stage {
 
         Font font = new Font(R.drawable.font, R.raw.font_info);
 
-        this.sprite = new TextSprite(font, new float[] { 0f, 1f, 0f, 1f }, BlendMode.MULTIPLICATIVE, "|");
+        this.sprite = new TextSprite(font, new float[] { 0f, 1f, 0f, 1f }, BlendMode.MULTIPLICATIVE, "");
 
         this.camera = new Camera(0f, 0f, 0.33f);
         this.shader_program = new ShaderProgram(R.raw.vertex_shader, R.raw.fragment_shader);
@@ -61,6 +52,10 @@ public class WorldStage implements Stage {
         float[] world_pos = Transform.screen_to_world(me.getX(), me.getY(), this.w, this.h, this.camera);
         x = world_pos[0];
         y = world_pos[1];
+        ((TextSprite)this.sprite).set_text(
+                "(" +
+                Float.toString(x).substring(0, 5) + ", " + Float.toString(y).substring(0, 5) +
+                ")");
         return false;
     }
 
@@ -76,7 +71,7 @@ public class WorldStage implements Stage {
 
         this.shader_program.bind();
         this.camera.set_uniforms(this.shader_program);
-        this.sprite.render(this.shader_program, x, y);
+        this.sprite.render(this.shader_program, x, y, 0.5f, 0.5f);
 
         ShaderProgram.unbind_any_shader_program();
     }

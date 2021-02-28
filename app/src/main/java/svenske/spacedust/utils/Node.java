@@ -1,27 +1,14 @@
 package svenske.spacedust.utils;
 
-import android.util.Log;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import androidx.annotation.NonNull;
-
 /**
  * Serves as a medium of data transfer using a tree-like data structure.
  */
 public class Node {
-
-    //Static Data
-    private static char DIVIDER_CHAR = ':';
-    private static char INDENT_CHAR = ' ';
 
     //Data
     private List<Node> children;
@@ -159,6 +146,7 @@ public class Node {
         Pattern p = Pattern.compile("^\\s*([!-~&&[^:]]+)\\s*:\\s*([!-~&&[^:\\{]]*)\\s*(\\{?)\\s*$");
         Matcher m = p.matcher(line);
 
+        // Divide into subgroups and return
         if (m.find()) {
             return new Object[] { m.group(1), m.group(2), m.group(3).equals("{") ? Boolean.TRUE : Boolean.FALSE };
         } else
@@ -166,19 +154,22 @@ public class Node {
                     "Unable to match line (" + line_number + "): " + line);
     }
 
+    /**
+     * Uses regex to match an ending bracket line
+     * @return true if the line is an ending bracket line
+     */
     public static boolean ending_bracket(String line) {
-        // Check for ending bracket first
         Pattern p = Pattern.compile("^\\s*\\}\\s*$");
         Matcher m = p.matcher(line);
         return m.find();
     }
 
     /**
-     * Recursively reads a Node from a given list of strings.
+     * Recursively reads a Node from a given list using regex
      * @param node the current Node in focus
-     * @param file_contents the recursively static file contents
+     * @param file_contents the file contents
      * @param i the current line of file_contents in focus
-     * @return the node in focus and its recursively read children
+     * @return the Node in focus and its recursively read children
      */
     private static int read_node_recursively(Node node, List<String> file_contents, int i) {
 

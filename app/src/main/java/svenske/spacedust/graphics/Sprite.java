@@ -2,8 +2,6 @@ package svenske.spacedust.graphics;
 
 import android.opengl.GLES20;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
@@ -135,8 +133,10 @@ public class Sprite {
      * Renders the sprite
      * The given position means different things depending on the shader program used. This method
      * assumes the given shader program always has "obj_x" and "obj_y" uniforms
+     * @param sx a horizontal scaling factor
+     * @param sy a vertical scaling factor
      */
-    public void render(ShaderProgram shader_program, float x, float y) {
+    public void render(ShaderProgram shader_program, float x, float y, float sx, float sy) {
 
         // Set vertex position attribute data
         int position_attrib_loc = shader_program.get_attribute_location("vertex_position");
@@ -168,6 +168,8 @@ public class Sprite {
         // Pass in given position
         shader_program.set_uniform("obj_x", x);
         shader_program.set_uniform("obj_y", y);
+        shader_program.set_uniform("obj_scale_x", sx);
+        shader_program.set_uniform("obj_scale_y", sy);
 
         // Draw
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, this.vertex_count, GLES20.GL_UNSIGNED_SHORT, this.draw_order);

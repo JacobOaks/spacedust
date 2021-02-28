@@ -1,7 +1,5 @@
 package svenske.spacedust.graphics;
 
-import android.util.Log;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,13 +39,7 @@ public class Font extends TextureAtlas {
         }
     }
 
-    /**
-     * Calculate the texture coordinates for the given character of this Font
-     * @param c the character whose texture coordinates to receive
-     * @param cutoff whether to cutoff extra whitespace
-     */
-    public float[] get_tex_coords_for_char(char c, boolean cutoff) {
-
+    private void check_char_validity(char c) {
         // Check for out-of-bounds character
         if (c < this.starting_char)
             throw new RuntimeException("[spdt/font] " +
@@ -57,6 +49,36 @@ public class Font extends TextureAtlas {
             throw new RuntimeException("[spdt/font]" +
                     "the given character '" + c + "' is after the ending character '" +
                     (this.starting_char + (this.rows * this.cols)) + "'");
+    }
+
+    // Height always 1.0f, width varies to make height 1.0f
+    public float[] get_vertex_positions_for_char(char c, boolean cutoff) {
+        this.check_char_validity(c);
+
+        // Calculate character width and height in pixels
+        float char_width = (float)this.width / (float)this.cols;
+        float char_height = (float)this.height / (float)this.rows;
+
+        // Calculate half-width and half-height necessary to make total height 1f
+        if (cutoff) char_width -= (2 * this.get_cutoff(c));
+        float cw = (char_width / char_height) / 2f;
+        float ch = 1f / 2f;
+
+        return new float[] {
+                -cw,  ch, // top left
+                -cw, -ch, // bottom left
+                 cw, -ch, // bottom right
+                 cw,  ch, // top right
+        };
+    }
+
+    /**
+     * Calculate the texture coordinates for the given character of this Font
+     * @param c the character whose texture coordinates to receive
+     * @param cutoff whether to cutoff extra whitespace
+     */
+    public float[] get_tex_coords_for_char(char c, boolean cutoff) {
+        this.check_char_validity(c);
 
         // Calculate row and column
         int c_index = (c - this.starting_char);
@@ -85,8 +107,6 @@ public class Font extends TextureAtlas {
     }
 
     //Accessors
-    public float getCharacterHeight() { return (float)this.height / (float)this.rows; }
-    public float getCharacterWidth() { return (float)this.width / (float)this.cols; }
     public int get_cutoff(char c) {
         Integer cutoff = this.cutoffs.get(c);
         if (cutoff == null) cutoff = this.standard_cutoff;
