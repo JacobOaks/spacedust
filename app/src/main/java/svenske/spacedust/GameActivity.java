@@ -11,20 +11,20 @@ import svenske.spacedust.stages.StageName;
 import svenske.spacedust.utils.Node;
 
 /**
- * The sole Activity used for the app.
+ * SpaceDust's Android Activity. The top layer of Android API I interact with.
  */
 public class GameActivity extends Activity {
 
     // This is the stage that will always be loaded first when the app starts up.
     private static final StageName START_STAGE = StageName.WORLD_STAGE;
 
-    // This is the current stage
+    // Saved to re-create across OpenGL ES context recreations.
     public static StageName current_stage = START_STAGE;
 
     // Any continuous data to be transferred across OpenGL ES context changes
     private static Node continuous_data;
 
-    // Static app resources that can be used app-wide
+    // Static app resources that can be used app-wide. It's this or passing a Context everywhere.
     public static Resources app_resources;
 
     // The OpenGLSurfaceView drawn upon by a GameRenderer, and displayed on this Activity.
@@ -37,7 +37,7 @@ public class GameActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        GameActivity.app_resources = this.getResources();
+        GameActivity.app_resources = this.getResources(); // get static app-wide resource reference
         this.gl_view = new GameView(this);
         this.setContentView(this.gl_view);
     }

@@ -8,8 +8,14 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
+/**
+ * A class with generic static utility methods.
+ */
 public class Utils {
 
+    /**
+     * Converts an InputStream (say, from a raw resource) into a single String.
+     */
     public static String input_stream_to_string(InputStream is) {
 
         // Create empty ByteArrayOutputStream
@@ -31,6 +37,9 @@ public class Utils {
         }
     }
 
+    /**
+     * Turns a float array into a FloatBuffer.
+     */
     public static FloatBuffer get_float_buffer_from(float[] values) {
 
         // Num coordinates * 4 bytes per float
@@ -42,6 +51,9 @@ public class Utils {
         return fb;
     }
 
+    /**
+     * Turns a short (as in the data type) array into a ShortBuffer.
+     */
     public static ShortBuffer get_short_buffer_from(short[] values) {
 
         // Num coordinates * 2 bytes per short

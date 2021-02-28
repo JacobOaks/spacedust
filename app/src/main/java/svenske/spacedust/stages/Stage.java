@@ -40,12 +40,13 @@ public interface Stage {
 
     /**
      * Called every loop before render().
-     * @param dt the amount of time since the last loop in ms.
+     * @param dt the amount of time since the last loop in seconds. Try to use this somehow in
+     *           calculations to ensure smooth updates.
      */
     void update(float dt);
 
     /**
-     * Called every loop after update().
+     * Called every loop after update(). Use this method for rendering only
      */
     void render();
 

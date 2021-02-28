@@ -16,4 +16,8 @@ public class Camera {
         shader_program.set_uniform("cam_y", this.y);
         shader_program.set_uniform("cam_zoom", this.zoom);
     }
+
+    public float getX() { return this.x; }
+    public float getY() { return this.y; }
+    public float getZoom() { return this.zoom; }
 }

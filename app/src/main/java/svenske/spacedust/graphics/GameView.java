@@ -33,8 +33,12 @@ public class GameView extends GLSurfaceView {
         this.sgd = new ScaleGestureDetector(context, new ScaleListener());
     }
 
+    // Whether or not input should be responded to after being considered as a possible gesture
     private static boolean respond_no_further = false;
 
+    /**
+     * Responds to touch events by checking for scaling and then other input.
+     */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         this.sgd.onTouchEvent(event);
@@ -50,11 +54,16 @@ public class GameView extends GLSurfaceView {
         return this.game_renderer.get_continuous_data();
     }
 
+    /**
+     * Listens for scaling gestures, and notifies the GameRenderer if one is detected.
+     */
     public class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
 
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
-            respond_no_further = game_renderer.scale_input(detector.getScaleFactor(), detector.getFocusX(), detector.getFocusY());
+            // If the GameRenderer no longer wants us to consider this input, don't consider it.
+            respond_no_further = game_renderer.scale_input(
+                    detector.getScaleFactor(), detector.getFocusX(), detector.getFocusY());
             return true;
         }
     }

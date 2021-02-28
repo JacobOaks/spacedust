@@ -16,10 +16,23 @@ import svenske.spacedust.GameActivity;
 
 import static svenske.spacedust.utils.Utils.get_float_buffer_from;
 
+/**
+ * Represents a single texture atlas (or "sprite sheet") that may or may not have many textures
+ * in one image. These should be shared amongst Sprites. They provide utility functions to get
+ * correct texture coordinate buffers based off of atlas size and desired cell. These are also
+ * shared, so try to use similarly-sized sheets/repeat texture coordinates. This class also
+ * provides utility functions for performing operations on multiple atlases (i.e., splitting,
+ * stacking, slicing, etc.)
+ */
 public class TextureAtlas {
 
+    //  Maps from atlas rows -> atlas columns -> 2D array of possible texture coordinate buffers.
     private static Map<Integer, Map<Integer, FloatBuffer[][]>> tex_coords_buffers;
 
+    /**
+     * Inspects the tex_coords_buffer data structure above, reporting how many unique atlas shapes
+     * are registered and how many total texture coordinate buffers are created.
+     */
     public static void inspect_tex_coords_buffers() {
 
         // Ensure map has been initialized
@@ -47,6 +60,10 @@ public class TextureAtlas {
                 + " total texture coordinate buffers");
     }
 
+    /**
+     * Returns a texture coordinate buffer to use for the given row and column of the given atlas.
+     * These are lazily created. Try to re-use similar texture coordinates and atlas sizes.
+     */
     public static FloatBuffer get_tex_coords_buffer(TextureAtlas ta, int row, int col) {
 
         // Ensure map has been initialized
@@ -63,17 +80,21 @@ public class TextureAtlas {
         FloatBuffer[][] buffer_array = for_total_rows.get(ta.cols);
 
         // Calculate texture coordinates if this is first time this buffer is needed
-        if (buffer_array[row][col] == null) {
-            float colf = (float)col;
-            float rowf = (float)row;
-            float[] texture_coordinates = {
-                    colf / ta.cols, (rowf + 1f) / ta.rows,      // top-left
-                    colf / ta.cols, rowf / ta.rows,             // bottom-left
-                    (colf + 1) / ta.cols, rowf / ta.rows,       // bottom-right
-                    (colf + 1) / ta.cols, (rowf + 1) / ta.rows, // top-right
-            };
+        try {
+            if (buffer_array[row][col] == null) {
+                float colf = (float) col;
+                float rowf = (float) row;
+                float[] texture_coordinates = {
+                        colf / ta.cols, (rowf + 1f) / ta.rows,      // top-left
+                        colf / ta.cols, rowf / ta.rows,             // bottom-left
+                        (colf + 1) / ta.cols, rowf / ta.rows,       // bottom-right
+                        (colf + 1) / ta.cols, (rowf + 1) / ta.rows, // top-right
+                };
 
-            buffer_array[row][col] = get_float_buffer_from(texture_coordinates);
+                buffer_array[row][col] = get_float_buffer_from(texture_coordinates);
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new RuntimeException("[spdt/textureatlas] out of bounds: " + e.getMessage());
         }
 
         return buffer_array[row][col];
@@ -84,6 +105,10 @@ public class TextureAtlas {
     private int width, height;
     private int[] id;
 
+    /**
+     * Creates a new texture atlas with the image at the given resource ID. If this is a sheet
+     * with just one texture, rows = cols = 1.
+     */
     public TextureAtlas(int resource_id, int rows, int cols) {
 
         //load texture into bitmap
@@ -100,28 +125,29 @@ public class TextureAtlas {
             }
         }
 
-        //set width and height
+        // Set width and height
         this.rows = rows;
         this.cols = cols;
         this.width = bmp.getWidth();
-        this.height = bmp.getHeight();//generate gl texture and bind it
+        this.height = bmp.getHeight();
         this.id = new int[1];
 
+        // Generate and bind GL texture object
         GLES20.glGenTextures(1, id, 0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, id[0]);
 
-        //set minification and magnification filter parameters
+        // Set minification and magnification filter parameters
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
 
-        //set wrapping
+        // Set wrapping parameters
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT);
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT);
 
-        //bind bitmap to texture
+        // Put loaded  bitmap to texture
         GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bmp, 0);
 
-        //recycle bitmap
+        // Recycle bitmap
         bmp.recycle();
     }
 

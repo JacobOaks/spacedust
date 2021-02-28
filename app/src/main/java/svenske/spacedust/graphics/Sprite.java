@@ -54,10 +54,10 @@ public class Sprite {
     /**
      * Buffers/rendering data for the sprite
      */
-    private FloatBuffer vertex_positions;    // actual vertex positions in model space
-    private FloatBuffer texture_coordinates; // texture coordinates
-    private ShortBuffer draw_order;          // draw order in triangles
-    private int vertex_count;                // total amount of drawn vertices
+    protected FloatBuffer vertex_positions;    // actual vertex positions in model space
+    protected FloatBuffer texture_coordinates; // texture coordinates
+    protected ShortBuffer draw_order;          // draw order in triangles
+    protected int vertex_count;                // total amount of drawn vertices
 
     // Sprite Attributes
     TextureAtlas atlas;
@@ -116,7 +116,7 @@ public class Sprite {
     /**
      * Verifies that an atlas and color are valid given a blend mode
      */
-    private static void check_blend_mode(TextureAtlas atlas, float[] color, BlendMode blend_mode) {
+    protected static void check_blend_mode(TextureAtlas atlas, float[] color, BlendMode blend_mode) {
         if ((blend_mode != BlendMode.JUST_COLOR) && atlas == null)
             throw new RuntimeException("[spdt/sprite]" +
                     "BlendMode " + blend_mode + " given but no texture given");

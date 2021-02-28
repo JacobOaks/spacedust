@@ -18,7 +18,15 @@ import svenske.spacedust.utils.Node;
  */
 public class GameRenderer implements GLSurfaceView.Renderer {
 
-    private Stage stage; // The current stage
+    private Stage stage;           // The current stage
+
+    /**
+     * These attributes are used for timekeeping
+     */
+    private long last_cycle = -1;  // This time since the last cycle (ms)
+    private int acc_frame = 0;     // Count frames
+    private float acc_time = 0;    // Count seconds
+    private final float FPS_report_interval = 0.5f; // Interval in s between FPS logs
 
     /**
      * Whenever the surface is created, initialize GL and the current Stage.
@@ -90,13 +98,34 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     public boolean other_input(MotionEvent me) { return this.stage.other_input(me); }
 
     /**
-     * Performs timekeeping calculations and updates the current Stage
+     * Performs timekeeping calculations and updates the current Stage.
      */
     private void update() {
 
-        // TODO: Delta calculations
+        // Timekeeping
+        long now = System.currentTimeMillis();
+        float dt = 0;
+        if (last_cycle != -1) dt = (float) (now - last_cycle) / 1000f; // seconds
+        last_cycle = now;
+        this.fps(dt);
 
-        this.stage.update(0f);
+        // Update stage
+        this.stage.update(dt);
+    }
+
+    /**
+     * Performs FPS calculations. Everytime a specified interval of time passes, FPS is logged
+     * in the verbose channel.
+     */
+    private void fps(float dt) {
+        if (this.FPS_report_interval < 0) return;
+        this.acc_frame++;
+        this.acc_time += dt;
+        if (this.acc_time > this.FPS_report_interval) {
+            Log.v("spdt/gamerenderer", "FPS: " + ((float)this.acc_frame / this.acc_time));
+            this.acc_frame = 0;
+            this.acc_time = 0f;
+        }
     }
 
     /**
