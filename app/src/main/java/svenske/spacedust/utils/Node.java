@@ -19,7 +19,7 @@ public class Node {
 
     //Static Data
     private static char DIVIDER_CHAR = ':';
-    private static char INDENT_CHAR = '\t';
+    private static char INDENT_CHAR = ' ';
 
     //Data
     private List<Node> children;
@@ -155,55 +155,57 @@ public class Node {
      */
     private static int read_node_recursively(Node node, List<String> file_contents, int i, int indent) {
 
-        //format next line and find dividing point
+        // Format next line and find dividing point
         String nextLine = file_contents.get(i); //get line
-        nextLine = nextLine.substring(indent, nextLine.length()); //remove indent
-        int dividerLocation = -1; //location of the divider in line
-        for (int j = 0; j < nextLine.length() && dividerLocation == -1; j++)
-            if (nextLine.charAt(j) == Node.DIVIDER_CHAR) dividerLocation = j; //find divider
+        nextLine = nextLine.substring(indent); //remove indent
+        int divider_location = -1; //location of the divider in line
+        for (int j = 0; j < nextLine.length() && divider_location == -1; j++)
+            if (nextLine.charAt(j) == Node.DIVIDER_CHAR) divider_location = j; //find divider
 
-        //throw error if no divider found
-        if (dividerLocation == -1)
+        // Throw error if no divider found
+        if (divider_location == -1)
             throw new RuntimeException("[spdt/node] " +
                     "could not find divider in line '" + nextLine + "'");
 
-        //create node and set name
+        // Create node and set name
         Node curr = new Node();
-        String possibleName = nextLine.substring(0, dividerLocation);
-        if (!possibleName.equals("")) curr.set_name(nextLine.substring(0, dividerLocation)); //create node with name
+        String possible_name = nextLine.substring(0, divider_location);
+        if (!possible_name.equals("")) curr.set_name(nextLine.substring(0, divider_location)); //create node with name
 
-        //set node value if there is one
-        String possibleValue = nextLine.substring(dividerLocation + 1, nextLine.length()); //grab possible value
-        if (!possibleValue.equals(" ") && !possibleValue.equals("")) { //if possible value has substance
-            curr.set_value(possibleValue.substring(1, possibleValue.length())); //set value (remove first space space)
+        // Set node value if there is one
+        String possible_value = nextLine.substring(divider_location + 1); //grab possible value
+        if (!possible_value.equals(" ") && possible_value.length() > 0) { //if possible value has substance
+            //set value (remove first space)
+            curr.set_value(possible_value.substring(1));
+            if (curr.value.endsWith("\r") || curr.value.endsWith("\n"))
+                curr.value = curr.value.substring(0, curr.value.length() - 1);
         }
 
-        //check for more file
+        // Check for more file
         if (i + 1 <= file_contents.size()) { //if not eof
 
-            //check for child nodes
+            // Check for child nodes
             if (file_contents.get(i + 1).contains("{")) { //if the node has children
                 i += 2; //iterate twice
                 indent++; //iterate indent
                 while (!file_contents.get(i).contains("}")) { //while there are more children
 
-                    //add child
+                    // Add child
                     Node child = new Node(); //create child node
                     i = read_node_recursively(child, file_contents, i, indent); //recursively read child, keep track of file position
                     curr.add_child(child); //add child
 
-                    //throw error if file suddenly stops
+                    // Throw error if file suddenly stops
                     if ((i + 1) > file_contents.size())
                         throw new RuntimeException("[spdt/node] " +
                                 "unexpected stop in file at line " + i);
 
-                    //iterate i
                     i += 1;
                 }
             }
         }
 
-        //set node, return current position in file
+        // Set node, return current position in file
         node.set_name(curr.get_name());
         node.set_value(curr.get_value());
         node.add_children(curr.get_children());
@@ -211,27 +213,4 @@ public class Node {
     }
 
     // TODO: Write node to file to save game data
-
-    /**
-     * Recursively write a node to a file
-     * @param out the PrintWriter to use for writing
-     * @param node the current node in focus
-     * @param indent the current indent to use
-     */
-    private static void write_node_recursively(PrintWriter out, Node node, StringBuilder indent) {
-
-        //print name and date
-        String indentString = indent.toString();
-        out.print(indentString + (node.has_name() ? node.get_name() : "") + Node.DIVIDER_CHAR + " ");
-        out.println(node.has_value() ? node.get_value() : "");
-
-        //print children
-        if (node.has_children()) {
-            out.println(indentString + "{");
-            indent.append(Node.INDENT_CHAR);
-            for (Node child : node.get_children()) write_node_recursively(out, child, indent);
-            indent.deleteCharAt(indent.length() - 1);
-            out.println(indentString + "}");
-        }
-    }
 }

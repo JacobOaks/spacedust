@@ -85,10 +85,10 @@ public class TextureAtlas {
                 float colf = (float) col;
                 float rowf = (float) row;
                 float[] texture_coordinates = {
-                        colf / ta.cols, (rowf + 1f) / ta.rows,      // top-left
-                        colf / ta.cols, rowf / ta.rows,             // bottom-left
-                        (colf + 1) / ta.cols, rowf / ta.rows,       // bottom-right
-                        (colf + 1) / ta.cols, (rowf + 1) / ta.rows, // top-right
+                        colf / ta.cols,       rowf / ta.rows,        // top-left
+                        colf / ta.cols,       (rowf + 1f) / ta.rows, // bottom-left
+                        (colf + 1) / ta.cols, (rowf + 1f) / ta.rows, // bottom-right
+                        (colf + 1) / ta.cols, rowf / ta.rows,        // top-right
                 };
 
                 buffer_array[row][col] = get_float_buffer_from(texture_coordinates);
@@ -101,9 +101,9 @@ public class TextureAtlas {
     }
 
     // TextureAtlas attributes
-    private int rows, cols;
-    private int width, height;
-    private int[] id;
+    protected int rows, cols;
+    protected int width, height;
+    protected int[] id;
 
     /**
      * Creates a new texture atlas with the image at the given resource ID. If this is a sheet

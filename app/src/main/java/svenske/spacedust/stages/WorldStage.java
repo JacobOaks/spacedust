@@ -14,6 +14,7 @@ import svenske.spacedust.graphics.AnimatedSprite;
 import svenske.spacedust.graphics.Animation;
 import svenske.spacedust.graphics.BlendMode;
 import svenske.spacedust.graphics.Camera;
+import svenske.spacedust.graphics.Font;
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
 import svenske.spacedust.graphics.TextureAtlas;
@@ -38,33 +39,20 @@ public class WorldStage implements Stage {
             // TODO: Starting from scratch
         }
 
-        TextureAtlas atlas  = new TextureAtlas(R.drawable.example_atlas, 1, 1);
+        Font font = new Font(R.drawable.font, R.raw.font_info);
 
-        Animation anim = new Animation(0.04f, 13,
-                new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-                new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-                new float[][] {
-                        {0.0f, 0.0f, 0.0f, 1.0f},
-                        {0.0f, 0.1f, 0.0f, 1.0f},
-                        {0.0f, 0.2f, 0.0f, 1.0f},
-                        {0.0f, 0.3f, 0.0f, 1.0f},
-                        {0.0f, 0.4f, 0.0f, 1.0f},
-                        {0.0f, 0.5f, 0.0f, 1.0f},
-                        {0.0f, 0.6f, 0.0f, 1.0f},
-                        {0.0f, 0.7f, 0.0f, 1.0f},
-                        {0.0f, 0.8f, 0.0f, 1.0f},
-                        {0.0f, 0.9f, 0.0f, 1.0f},
-                        {0.0f, 1.0f, 0.0f, 1.0f},
-                        {0.0f, (2f/3f), 0.0f, 1.0f},
-                        {0.0f, (1f/3f), 0.0f, 1.0f}
-                },
+        Animation anim = new Animation(0.5f, 10,
+                new int[] { 1, 1, 1, 2, 2, 2, 2, 2, 2, 2 },
+                new int[] { 7, 8, 9, 0, 1, 2, 3, 4, 5, 6 },
+                null,
                 new BlendMode[] {
-                        BlendMode.AVG, BlendMode.AVG, BlendMode.AVG, BlendMode.AVG, BlendMode.AVG,
-                        BlendMode.AVG, BlendMode.AVG, BlendMode.AVG, BlendMode.AVG, BlendMode.AVG,
-                        BlendMode.AVG, BlendMode.AVG, BlendMode.AVG });
+                        BlendMode.JUST_TEXTURE, BlendMode.JUST_TEXTURE, BlendMode.JUST_TEXTURE,
+                        BlendMode.JUST_TEXTURE, BlendMode.JUST_TEXTURE, BlendMode.JUST_TEXTURE,
+                        BlendMode.JUST_TEXTURE, BlendMode.JUST_TEXTURE, BlendMode.JUST_TEXTURE,
+                        BlendMode.JUST_TEXTURE });
         Map<String, Animation> animations = new HashMap<>();
-        animations.put("flash_green", anim);
-        this.sprite = new AnimatedSprite(atlas, animations, "flash_green");
+        animations.put("test", anim);
+        this.sprite = new AnimatedSprite(font, animations, "test");
 
         this.camera = new Camera(0f, 0f, 0.33f);
         this.shader_program = new ShaderProgram(R.raw.vertex_shader, R.raw.fragment_shader);
