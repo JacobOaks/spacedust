@@ -7,6 +7,10 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
+import java.util.ArrayList;
+import java.util.List;
+
+import svenske.spacedust.GameActivity;
 
 /**
  * A class with generic static utility methods.
@@ -35,6 +39,31 @@ public class Utils {
             throw new RuntimeException("[spdt/utils]: " +
                     " can't convert InputStream to String:" + ioe.getMessage());
         }
+    }
+
+    /**
+     * Splits a string into a list of strings by splitting at the given char
+     */
+    public static List<String> split_string(String value, char split) {
+        List<String> result = new ArrayList<>();
+        int beginning = 0;
+        for (int i = 0; i < value.length(); i++) {
+            if (value.charAt(i) == split) {
+                result.add(value.substring(beginning, i));
+                beginning = i + 1;
+            }
+        }
+        result.add(value.substring(beginning));
+        return result;
+    }
+
+    /**
+     * Reads a resource with the given ID, returning it as a list of Strings
+     */
+    public static List<String> read_resource(int resource_id) {
+        InputStream is = GameActivity.app_resources.openRawResource(resource_id);
+        String data = Utils.input_stream_to_string(is);
+        return split_string(data, '\n');
     }
 
     /**
