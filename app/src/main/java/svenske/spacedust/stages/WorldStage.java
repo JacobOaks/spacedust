@@ -17,6 +17,7 @@ import svenske.spacedust.graphics.Camera;
 import svenske.spacedust.graphics.Font;
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
+import svenske.spacedust.graphics.TextSprite;
 import svenske.spacedust.graphics.TextureAtlas;
 import svenske.spacedust.utils.Node;
 import svenske.spacedust.utils.Transform;
@@ -41,18 +42,7 @@ public class WorldStage implements Stage {
 
         Font font = new Font(R.drawable.font, R.raw.font_info);
 
-        Animation anim = new Animation(0.5f, 10,
-                new int[] { 1, 1, 1, 2, 2, 2, 2, 2, 2, 2 },
-                new int[] { 7, 8, 9, 0, 1, 2, 3, 4, 5, 6 },
-                null,
-                new BlendMode[] {
-                        BlendMode.JUST_TEXTURE, BlendMode.JUST_TEXTURE, BlendMode.JUST_TEXTURE,
-                        BlendMode.JUST_TEXTURE, BlendMode.JUST_TEXTURE, BlendMode.JUST_TEXTURE,
-                        BlendMode.JUST_TEXTURE, BlendMode.JUST_TEXTURE, BlendMode.JUST_TEXTURE,
-                        BlendMode.JUST_TEXTURE });
-        Map<String, Animation> animations = new HashMap<>();
-        animations.put("test", anim);
-        this.sprite = new AnimatedSprite(font, animations, "test");
+        this.sprite = new TextSprite(font, new float[] { 0f, 1f, 0f, 1f }, BlendMode.MULTIPLICATIVE, "|");
 
         this.camera = new Camera(0f, 0f, 0.33f);
         this.shader_program = new ShaderProgram(R.raw.vertex_shader, R.raw.fragment_shader);

@@ -24,7 +24,7 @@ public class Font extends TextureAtlas {
     public Font(int atlas_resource_id, int info_resource_id) {
         super(atlas_resource_id, 0, 0);
         Node font_data = Node.read_node(info_resource_id);
-        this.starting_char = font_data.get_child("starting_char").get_value().charAt(0);
+        this.starting_char = (char)Integer.parseInt(font_data.get_child("starting_char").get_value());
         this.rows = Integer.parseInt(font_data.get_child("rows").get_value());
         this.cols = Integer.parseInt(font_data.get_child("cols").get_value());
 

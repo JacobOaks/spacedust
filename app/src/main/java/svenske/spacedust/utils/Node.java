@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
 
@@ -139,76 +141,71 @@ public class Node {
     public static Node read_node(int resource_id) {
         Node node = new Node();
         List<String> data = Utils.read_resource(resource_id);
-        read_node_recursively(node, data, 0, 0);
-        return node;
+        read_node_recursively(node, data, 0);
+        return node.get_child(0);
     }
 
     // TODO: Read node from file (for loading save game data)
+
+    /**
+     * Parses a given line of a node file using regex
+     * @param line_number a line number corresponding to the line in the node folder, reported if
+     *                    unable to match
+     * @return an Object array [(String) name, (String) value, (Boolean) has children]
+     */
+    public static Object[] match_line(String line, int line_number) {
+
+        // Check for actual data line
+        Pattern p = Pattern.compile("^\\s*([!-~&&[^:]]+)\\s*:\\s*([!-~&&[^:\\{]]*)\\s*(\\{?)\\s*$");
+        Matcher m = p.matcher(line);
+
+        if (m.find()) {
+            return new Object[] { m.group(1), m.group(2), m.group(3).equals("{") ? Boolean.TRUE : Boolean.FALSE };
+        } else
+            throw new RuntimeException("[spdt/node] " +
+                    "Unable to match line (" + line_number + "): " + line);
+    }
+
+    public static boolean ending_bracket(String line) {
+        // Check for ending bracket first
+        Pattern p = Pattern.compile("^\\s*\\}\\s*$");
+        Matcher m = p.matcher(line);
+        return m.find();
+    }
 
     /**
      * Recursively reads a Node from a given list of strings.
      * @param node the current Node in focus
      * @param file_contents the recursively static file contents
      * @param i the current line of file_contents in focus
-     * @param indent the current indent in terms of number of characters
      * @return the node in focus and its recursively read children
      */
-    private static int read_node_recursively(Node node, List<String> file_contents, int i, int indent) {
+    private static int read_node_recursively(Node node, List<String> file_contents, int i) {
 
-        // Format next line and find dividing point
-        String nextLine = file_contents.get(i); //get line
-        nextLine = nextLine.substring(indent); //remove indent
-        int divider_location = -1; //location of the divider in line
-        for (int j = 0; j < nextLine.length() && divider_location == -1; j++)
-            if (nextLine.charAt(j) == Node.DIVIDER_CHAR) divider_location = j; //find divider
+        Object[] match = match_line(file_contents.get(i), i);
 
-        // Throw error if no divider found
-        if (divider_location == -1)
-            throw new RuntimeException("[spdt/node] " +
-                    "could not find divider in line '" + nextLine + "'");
+        // Set name and value if there is one
+        Node curr = new Node((String)match[0]);
+        if (((String)match[1]).length() > 0) curr.set_value((String)match[1]);
 
-        // Create node and set name
-        Node curr = new Node();
-        String possible_name = nextLine.substring(0, divider_location);
-        if (!possible_name.equals("")) curr.set_name(nextLine.substring(0, divider_location)); //create node with name
+        // Check children
+        if ((Boolean)match[2]) {
 
-        // Set node value if there is one
-        String possible_value = nextLine.substring(divider_location + 1); //grab possible value
-        if (!possible_value.equals(" ") && possible_value.length() > 0) { //if possible value has substance
-            //set value (remove first space)
-            curr.set_value(possible_value.substring(1));
-            if (curr.value.endsWith("\r") || curr.value.endsWith("\n"))
-                curr.value = curr.value.substring(0, curr.value.length() - 1);
-        }
-
-        // Check for more file
-        if (i + 1 <= file_contents.size()) { //if not eof
-
-            // Check for child nodes
-            if (file_contents.get(i + 1).contains("{")) { //if the node has children
-                i += 2; //iterate twice
-                indent++; //iterate indent
-                while (!file_contents.get(i).contains("}")) { //while there are more children
-
-                    // Add child
-                    Node child = new Node(); //create child node
-                    i = read_node_recursively(child, file_contents, i, indent); //recursively read child, keep track of file position
-                    curr.add_child(child); //add child
-
-                    // Throw error if file suddenly stops
-                    if ((i + 1) > file_contents.size())
-                        throw new RuntimeException("[spdt/node] " +
-                                "unexpected stop in file at line " + i);
-
-                    i += 1;
-                }
+            if (i + 1 >= file_contents.size())
+                throw new RuntimeException("[spdt/node] " +
+                        "Unexpected EOF after opening bracket");
+            boolean end_of_children = ending_bracket(file_contents.get(i + 1));
+            while (!end_of_children) {
+                i = read_node_recursively(curr, file_contents, i + 1);
+                if (i + 1 >= file_contents.size())
+                    throw new RuntimeException("[spdt/node] " +
+                            "Unexpected EOF within children. Missing ending bracket line");
+                end_of_children = ending_bracket(file_contents.get(i + 1));
             }
         }
 
-        // Set node, return current position in file
-        node.set_name(curr.get_name());
-        node.set_value(curr.get_value());
-        node.add_children(curr.get_children());
+        // Add child and return new file position
+        node.add_child(curr);
         return i;
     }
 
