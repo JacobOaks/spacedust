@@ -24,7 +24,7 @@ import static android.opengl.GLES20.glViewport;
  */
 public class TextSprite extends Sprite {
 
-    private String text; // The current text
+    protected String text; // The current text
     private float width;
 
     /**
@@ -41,8 +41,9 @@ public class TextSprite extends Sprite {
                     "Creating a TextSprite but blend mode doesn't use texture");
 
         // Save actual data and update buffers for first time
-        this.atlas = font;
-        this.text = text;
+        this.atlas      = font;
+        this.text       = text;
+        this.color      = color;
         this.blend_mode = blend_mode;
         this.update_buffers();
     }
@@ -61,7 +62,7 @@ public class TextSprite extends Sprite {
      * Updates the Sprites vertex positions, texture coordinates, and draw order based off of the
      * currently set text
      */
-    private void update_buffers() {
+    protected void update_buffers() {
 
         // Create arrays
         float[] vertex_positions = new float[8 * this.text.length()];

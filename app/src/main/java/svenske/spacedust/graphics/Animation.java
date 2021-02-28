@@ -3,15 +3,11 @@ package svenske.spacedust.graphics;
 import android.util.Log;
 
 /**
- * An encapsulation for hugely customizable animation data.
+ * An encapsulation for customizable animation data.
  */
 public class Animation {
 
-    /**
-     * The arrays below must be as long as the amount of frames this animation has. Or, if texture
-     * isn't used in any frame, atlas_rows and atlas_cols can be null; If color is not used in any
-     * frame, colors can be null.
-     */
+    // Animation attributes
     public float frame_time;
     public int frames;
     public int[] atlas_rows;
@@ -20,15 +16,13 @@ public class Animation {
     public BlendMode[] blend_modes;
 
     /**
-     * Creates a new Animation
-     * @param frame_time how long each frame should last, in seconds
-     * @param frames how many frames there are
-     * @param atlas_rows the texture atlas row for each frame. set values to -1 when no texture is
-     *                   in that frame
-     * @param atlas_cols the texture atlas column for each frame. set values to -1 when no texture
-     *                   is in that frame
-     * @param colors the color for each frame. set values to null when no color is in that frame
-     * @param blend_modes the blend modes for each frame
+     * Creates a new animation. Each array parameter must be at least length 1. If an array's length
+     * is less than the amount of frames, the pattern will be repeated using the modulo operator.
+     * @param colors can contain null values to represent no color
+     * @param atlas_rows can contain the value -1 to represent no texture
+     * @param atlas_cols can contain the value -1 to represent no texture
+     * @param frame_time how long each frame should last, in seconds.
+     * @param frames how many frames there are.
      */
     public Animation(float frame_time, int frames, int[] atlas_rows, int[] atlas_cols,
                      float[][] colors, BlendMode[] blend_modes) {
@@ -45,19 +39,23 @@ public class Animation {
      * Does some basic checks to make sure the given animation information is valid
      */
     public void check_integrity() {
-        if (this.atlas_rows != null && this.atlas_rows.length != this.frames)
-            throw new RuntimeException("[spdt/animation]: invalid amount of atlas rows");
-        if (this.atlas_cols != null && this.atlas_cols.length != this.frames)
-            throw new RuntimeException("[spdt/animation]: invalid amount of atlas cows");
-        if (this.colors != null && this.colors.length != this.frames)
-            throw new RuntimeException("[spdt/animation]: invalid amount of colors");
-        if (this.blend_modes.length != this.frames)
-            throw new RuntimeException("[spdt/animation]: invalid amount of blend_modes");
+
+        // Check frame time valid
         if (this.frame_time < 0)
             Log.d("[spdt/animation]", "negative frame time. Undefined behavior.");
-        if (this.colors != null)
-            for (int i = 0; i < this.colors.length; i++)
-                if (this.colors[i] != null && this.colors[i].length != 4)
-                    throw new RuntimeException("[spdt/animation]: color " + i + " is not length 4");
+
+        // Check all colors are valid length
+        for (int i = 0; i < this.colors.length; i++)
+            if (this.colors[i] != null && this.colors[i].length != 4)
+                throw new RuntimeException("[spdt/animation]: color " + i + " is not length 4");
+
+        // Check blends of all frames make sense
+        for (int i = 0; i < this.frames; i++) {
+            boolean has_color = this.colors[i % this.colors.length] != null;
+            boolean has_atlas = this.atlas_cols[i % this.atlas_cols.length] != -1;
+            has_atlas = has_atlas && this.atlas_rows[i % this.atlas_rows.length] != -1;
+            Sprite.check_blend_mode(true, has_color, this.blend_modes[
+                    i % this.blend_modes.length]);
+        }
     }
 }

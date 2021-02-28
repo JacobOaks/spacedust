@@ -2,36 +2,25 @@ package svenske.spacedust.graphics;
 
 import java.util.Map;
 
-/**
- * Extends Sprite by supporting Animations. It's not super computationally complex, but static
- * objects that can be represented by normal Sprites should continue to be. The one restriction to
- * note for AnimatedSprites is that all textures used must be on the same atlas.
- */
-public class AnimatedSprite extends Sprite {
+public class AnimatedTextSprite extends TextSprite {
 
     /**
-     * A map from strings (animation) names to actual Animation info.
-     * e.g., a ship could have "idle", "shooting", etc. different animations.
+     * A map from strings (animation) names to actual TextAnimation info.
      */
-    private Map<String, Animation> anims;
-    private Animation current_anim; // currently active animation
+    private Map<String, TextAnimation> anims;
+    private TextAnimation current_anim; // currently active animation
 
     // Current frame and how many seconds it has left
     private int current_frame;
     private float time_left;
 
-    /**
-     * Creates the AnimatedSprite with the given atlas and animation info (mapped from name to
-     * animation).
-     * @param starting_anim the name of the animation to start with/
-     */
-    public AnimatedSprite(TextureAtlas atlas, Map<String, Animation> anims, String starting_anim) {
-        super(atlas,
-                anims.get(starting_anim).atlas_rows != null ? anims.get(starting_anim).atlas_rows[0] : null,
-                anims.get(starting_anim).atlas_cols != null ? anims.get(starting_anim).atlas_cols[0] : null,
+    public AnimatedTextSprite(Map<String, TextAnimation> anims, String starting_anim) {
+        super(
+                anims.get(starting_anim).fonts[0],
                 anims.get(starting_anim).colors != null ? anims.get(starting_anim).colors[0] : null,
                 anims.get(starting_anim).blend_modes[0],
-                null, null);
+                anims.get(starting_anim).texts[0]
+                );
 
         this.anims = anims;
         this.current_anim = this.anims.get(starting_anim);
@@ -58,15 +47,12 @@ public class AnimatedSprite extends Sprite {
     public void switch_frames(int frame) {
         this.current_frame = frame % this.current_anim.frames;
 
-        int atlas_row = -1;
-        if (this.current_anim.atlas_rows != null)
-            atlas_row = this.current_anim.atlas_rows[
-                    this.current_frame % this.current_anim.atlas_rows.length];
+        boolean buffers_need_updated = false;
 
-        int atlas_col = -1;
-        if (this.current_anim.atlas_cols != null)
-            atlas_col = this.current_anim.atlas_cols[
-                    this.current_frame % this.current_anim.atlas_cols.length];
+        // Update font
+        TextureAtlas old_atlas = this.atlas;
+        this.atlas = this.current_anim.fonts[this.current_frame % this.current_anim.fonts.length];
+        if (old_atlas != this.atlas) buffers_need_updated = true;
 
         // Update color
         this.color = null;
@@ -78,9 +64,16 @@ public class AnimatedSprite extends Sprite {
         this.blend_mode = this.current_anim.blend_modes[
                 this.current_frame % this.current_anim.blend_modes.length];
 
-        // Update texture coordinates buffer
-        this.texture_coordinates = TextureAtlas.get_tex_coords_buffer(
-                this.atlas, atlas_row, atlas_col);
+        // Update text
+        String new_text = this.current_anim.texts[
+                this.current_frame % this.current_anim.texts.length];
+        if (!this.text.equals(new_text)) {
+            this.set_text(new_text);
+            buffers_need_updated = false;
+        }
+
+        // Update buffers if necessary
+        if (buffers_need_updated) this.update_buffers();
     }
 
     /**

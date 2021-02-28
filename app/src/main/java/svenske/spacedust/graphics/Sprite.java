@@ -99,7 +99,7 @@ public class Sprite {
 
         // Save blend mode and verify it
         this.blend_mode = blend_mode;
-        check_blend_mode(this.atlas, this.color, this.blend_mode);
+        check_blend_mode(this.atlas != null, this.color != null, this.blend_mode);
 
         // Save draw order and count vertices
         if (draw_order == null) { // default to square draw order
@@ -114,11 +114,11 @@ public class Sprite {
     /**
      * Verifies that an atlas and color are valid given a blend mode
      */
-    protected static void check_blend_mode(TextureAtlas atlas, float[] color, BlendMode blend_mode) {
-        if ((blend_mode != BlendMode.JUST_COLOR) && atlas == null)
+    protected static void check_blend_mode(boolean has_atlas, boolean has_color, BlendMode blend_mode) {
+        if ((blend_mode != BlendMode.JUST_COLOR) && !has_atlas)
             throw new RuntimeException("[spdt/sprite]" +
                     "BlendMode " + blend_mode + " given but no texture given");
-        if ((blend_mode != BlendMode.JUST_TEXTURE) && color == null)
+        if ((blend_mode != BlendMode.JUST_TEXTURE) && !has_color)
             throw new RuntimeException("[spdt/sprite]" +
                     "BlendMode " + blend_mode + " given but no color given");
     }

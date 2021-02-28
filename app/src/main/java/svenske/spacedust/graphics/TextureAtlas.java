@@ -165,6 +165,4 @@ public class TextureAtlas {
 
     // Return the atlas' OpenGL ES texture id
     public int getID() { return this.id[0]; }
-
-    // TODO: Utility methods for merging, stacking, cropping, etc. TextureAtlases into new ones
 }
