@@ -51,11 +51,10 @@ public interface Stage {
     void render();
 
     /**
-     * Called whenever the renderer has a new viewport size to share
-     * @param width the new viewport width
-     * @param height the new viewport height
+     * Called whenever the renderer has a new viewport size to share. The new width/height are
+     * stored at Global.VIEWPORT_WIDTH and Global.VIEWPORT_HEIGHT
      */
-    void resize(float width, float height);
+    void resized();
 
     /**
      * @return data to be passed into a new instantiation of this Stage if the OpenGL ES context

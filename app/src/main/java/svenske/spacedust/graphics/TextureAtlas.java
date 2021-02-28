@@ -151,6 +151,19 @@ public class TextureAtlas {
         bmp.recycle();
     }
 
+    /**
+     * An alternative constructor taking an already created OpenGL texture and other texture
+     * information
+     */
+    public TextureAtlas(int texture_id, int rows, int cols, int width, int height) {
+        this.id = new int[] { texture_id };
+        this.rows = rows;
+        this.cols = cols;
+        this.width = width;
+        this.height = height;
+    }
+
+    // Return the atlas' OpenGL ES texture id
     public int getID() { return this.id[0]; }
 
     // TODO: Utility methods for merging, stacking, cropping, etc. TextureAtlases into new ones

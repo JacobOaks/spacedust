@@ -1,4 +1,11 @@
 
+/**
+ * Fragment shader program used for rendering a game world.
+ * Uses: - color
+ *       - texture
+ *       - blend mode
+ */
+
 precision mediump float;
 
 // uniforms

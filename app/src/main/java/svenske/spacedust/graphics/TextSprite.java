@@ -1,6 +1,21 @@
 package svenske.spacedust.graphics;
 
+import android.opengl.GLES20;
+
+import java.nio.ByteBuffer;
+
+import svenske.spacedust.R;
+import svenske.spacedust.utils.Global;
 import svenske.spacedust.utils.Utils;
+
+import static android.opengl.GLES20.GL_COLOR_ATTACHMENT0;
+import static android.opengl.GLES20.GL_FRAMEBUFFER;
+import static android.opengl.GLES20.GL_NEAREST;
+import static android.opengl.GLES20.GL_RGBA;
+import static android.opengl.GLES20.GL_TEXTURE_2D;
+import static android.opengl.GLES20.GL_UNSIGNED_BYTE;
+import static android.opengl.GLES20.glDeleteFramebuffers;
+import static android.opengl.GLES20.glViewport;
 
 /**
  * A sprite that can show text. The text can be changed on-demand. This class is more expensive to
@@ -10,6 +25,7 @@ import svenske.spacedust.utils.Utils;
 public class TextSprite extends Sprite {
 
     private String text; // The current text
+    private float width;
 
     /**
      * Constructs the TextSprite using the given font, text color, blend mode, and starting text.
@@ -84,9 +100,10 @@ public class TextSprite extends Sprite {
             draw_order[i * 6 + 5] = (short)(i * 4 + 3);
         }
 
+        this.width = vertex_positions[vertex_positions.length - 2];
         if (this.text.length() > 0) {
             // Translate left to center-align the text
-            float trans_left = vertex_positions[vertex_positions.length - 2] / 2;
+            float trans_left = this.width / 2;
             for (int i = 0; i < vertex_positions.length; i += 2)
                 vertex_positions[i] -= trans_left;
         }
@@ -103,7 +120,61 @@ public class TextSprite extends Sprite {
      * changed, but increases rendering efficiency greatly.
      */
     public Sprite solidify() {
-        return null;
-        // TODO
+
+        // Calculate the width/height of the new texture
+        int new_texture_width = ((Font)this.atlas).get_pixel_width_for_text(this.text, true);
+        int new_texture_height = ((Font)this.atlas).get_pixel_height_for_text();
+
+        // Generate and bind the FBO
+        int fbo[] = new int[1];
+        GLES20.glGenFramebuffers(1, fbo, 0);
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fbo[0]);
+
+        // Generate the final texture and attach it to the FBO
+        int texture_id[] = new int[1];
+        GLES20.glGenTextures(1, texture_id, 0);
+        GLES20.glBindTexture(GL_TEXTURE_2D, texture_id[0]); // bind
+        GLES20.glTexImage2D(GL_TEXTURE_2D, 0, GLES20.GL_RGBA, new_texture_width,
+                new_texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
+        GLES20.glTexParameteri(GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        GLES20.glTexParameteri(GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        GLES20.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id[0], 0);
+        GLES20.glBindTexture(GL_TEXTURE_2D, 0); // unbind
+
+        // Create solidification shader program
+        ShaderProgram sp = new ShaderProgram(R.raw.vertex_solidify, R.raw.fragment_solidify);
+
+        // Set viewport to final texture size and set clear color to full transparency
+        GLES20.glViewport(0, 0, new_texture_width, new_texture_height);
+        GLES20.glClearColor(0f, 0f, 0f, 0f);
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+
+        // Bind shader program and render
+        sp.bind();
+        sp.set_uniform("aspect_ratio", (float)new_texture_width / (float)new_texture_height);
+        this.render(sp, 0f, 0f, 2f, -2f);
+
+        // Cleanup
+        ShaderProgram.unbind_any_shader_program();
+        GLES20.glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDeleteFramebuffers(1, fbo, 0);
+
+        // Revert to old viewport and clear color
+        glViewport(0, 0, Global.VIEWPORT_WIDTH, Global.VIEWPORT_HEIGHT);
+        GLES20.glClearColor(Global.CLEAR_COLOR[0], Global.CLEAR_COLOR[1], Global.CLEAR_COLOR[2],
+                Global.CLEAR_COLOR[3]);
+
+        // Create the new texture and Sprite and return them
+        TextureAtlas new_texture = new TextureAtlas(texture_id[0], 1, 1, new_texture_width, new_texture_height);
+        return new Sprite(new_texture, 0, 0, null, BlendMode.JUST_TEXTURE,
+                new float[] {
+                    -this.width / 2,  0.5f, // top left
+                    -this.width / 2, -0.5f, // bottom left
+                     this.width / 2, -0.5f, // bottom right
+                     this.width / 2,  0.5f, // top right
+                }, null);
     }
+
+    // Returns the TextSprite's current text
+    public String getText() { return this.text; }
 }

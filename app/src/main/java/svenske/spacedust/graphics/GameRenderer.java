@@ -11,6 +11,7 @@ import javax.microedition.khronos.opengles.GL10;
 import svenske.spacedust.GameActivity;
 import svenske.spacedust.stages.Stage;
 import svenske.spacedust.stages.WorldStage;
+import svenske.spacedust.utils.Global;
 import svenske.spacedust.utils.Node;
 
 /**
@@ -44,7 +45,8 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     private void init_gl() {
 
         // Set background frame color
-        GLES20.glClearColor(0.2f, 0.3f, 0.8f, 1.0f);
+        GLES20.glClearColor(Global.CLEAR_COLOR[0], Global.CLEAR_COLOR[1], Global.CLEAR_COLOR[2],
+                Global.CLEAR_COLOR[3]);
 
         // Enable gl transparencies
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
@@ -79,8 +81,10 @@ public class GameRenderer implements GLSurfaceView.Renderer {
      */
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
+        Global.VIEWPORT_WIDTH = width;
+        Global.VIEWPORT_HEIGHT = height;
         GLES20.glViewport(0, 0, width, height);
-        this.stage.resize((float)width, (float)height);
+        this.stage.resized();
     }
 
     /**

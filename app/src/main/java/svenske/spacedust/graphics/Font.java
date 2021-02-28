@@ -5,6 +5,9 @@ import java.util.Map;
 
 import svenske.spacedust.utils.Node;
 
+/**
+ * An extension of TextureAtlas with some useful functions tailored towards displaying text
+ */
 public class Font extends TextureAtlas {
 
     /**
@@ -39,6 +42,9 @@ public class Font extends TextureAtlas {
         }
     }
 
+    /**
+     * Makes sure the given character can be represented by this font
+     */
     private void check_char_validity(char c) {
         // Check for out-of-bounds character
         if (c < this.starting_char)
@@ -50,6 +56,22 @@ public class Font extends TextureAtlas {
                     "the given character '" + c + "' is after the ending character '" +
                     (this.starting_char + (this.rows * this.cols)) + "'");
     }
+
+    /**
+     * Calculates how many pixels wide a given string would be in this Font.
+     * @param cutoff whether to calculate as if cutoff were applied
+     */
+    public int get_pixel_width_for_text(String s, boolean cutoff) {
+        int total_width = 0;
+        int char_width = (int)((float)this.width / (float)this.cols);
+        for (int i = 0; i < s.length(); i++) {
+            total_width += char_width;
+            if (cutoff) total_width -= (2 * this.get_cutoff(s.charAt(i)));
+        }
+        return total_width;
+    }
+
+    public int get_pixel_height_for_text() { return (int)((float)this.height / (float)this.rows); }
 
     // Height always 1.0f, width varies to make height 1.0f
     public float[] get_vertex_positions_for_char(char c, boolean cutoff) {
@@ -87,13 +109,13 @@ public class Font extends TextureAtlas {
 
         // Calculate texture coordinates
         float[] texture_coordinates = {
-                colf / this.cols,       rowf / this.rows,         // top-left
+                colf / this.cols,       rowf / this.rows,        // top-left
                 colf / this.cols,       (rowf + 1f) / this.rows, // bottom-left
                 (colf + 1) / this.cols, (rowf + 1f) / this.rows, // bottom-right
-                (colf + 1) / this.cols, rowf / this.rows,         // top-right
+                (colf + 1) / this.cols, rowf / this.rows,        // top-right
         };
 
-        //account for cutoff
+        // Account for cutoff
         if (cutoff) {
             float cutoffFactor = (float)get_cutoff(c) / (float)this.width;
             texture_coordinates[0] += cutoffFactor;
@@ -102,11 +124,11 @@ public class Font extends TextureAtlas {
             texture_coordinates[6] -= cutoffFactor;
         }
 
-        //return final coordinates
+        // Return final coordinates
         return texture_coordinates;
     }
 
-    //Accessors
+    // Returns the correct horizontal cutoff for the given character
     public int get_cutoff(char c) {
         Integer cutoff = this.cutoffs.get(c);
         if (cutoff == null) cutoff = this.standard_cutoff;
