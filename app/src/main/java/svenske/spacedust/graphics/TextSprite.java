@@ -25,7 +25,7 @@ import static android.opengl.GLES20.glViewport;
 public class TextSprite extends Sprite {
 
     protected String text; // The current text
-    private float width;
+    protected float width;
 
     /**
      * Constructs the TextSprite using the given font, text color, blend mode, and starting text.
@@ -45,6 +45,7 @@ public class TextSprite extends Sprite {
         this.text       = text;
         this.color      = color;
         this.blend_mode = blend_mode;
+        Sprite.check_blend_mode(true, color != null, blend_mode);
         this.update_buffers();
     }
 
@@ -117,7 +118,7 @@ public class TextSprite extends Sprite {
     }
 
     /**
-     * Turns the TextSprite into a normal sprite. Obviously this means the text can no longer be
+     * Turns the TextSprite into a normal Sprite. Obviously this means the text can no longer be
      * changed, but increases rendering efficiency greatly.
      */
     public Sprite solidify() {
@@ -126,21 +127,9 @@ public class TextSprite extends Sprite {
         int new_texture_width = ((Font)this.atlas).get_pixel_width_for_text(this.text, true);
         int new_texture_height = ((Font)this.atlas).get_pixel_height_for_text();
 
-        // Generate and bind the FBO
-        int fbo[] = new int[1];
-        GLES20.glGenFramebuffers(1, fbo, 0);
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fbo[0]);
-
-        // Generate the final texture and attach it to the FBO
-        int texture_id[] = new int[1];
-        GLES20.glGenTextures(1, texture_id, 0);
-        GLES20.glBindTexture(GL_TEXTURE_2D, texture_id[0]); // bind
-        GLES20.glTexImage2D(GL_TEXTURE_2D, 0, GLES20.GL_RGBA, new_texture_width,
-                new_texture_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (ByteBuffer) null);
-        GLES20.glTexParameteri(GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        GLES20.glTexParameteri(GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        GLES20.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id[0], 0);
-        GLES20.glBindTexture(GL_TEXTURE_2D, 0); // unbind
+        // Generate FBO and bound texture
+        int[] ids = Utils.get_new_fbo_and_bound_texture(new_texture_width, new_texture_height);
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, ids[0]);
 
         // Create solidification shader program
         ShaderProgram sp = new ShaderProgram(R.raw.vertex_solidify, R.raw.fragment_solidify);
@@ -152,13 +141,12 @@ public class TextSprite extends Sprite {
 
         // Bind shader program and render
         sp.bind();
-        sp.set_uniform("aspect_ratio", (float)new_texture_width / (float)new_texture_height);
-        this.render(sp, 0f, 0f, 2f, -2f);
+        this.render(sp, 0f, 0f, 2f / this.width, -2f);
 
         // Cleanup
         ShaderProgram.unbind_any_shader_program();
         GLES20.glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glDeleteFramebuffers(1, fbo, 0);
+        glDeleteFramebuffers(1, ids, 0);
 
         // Revert to old viewport and clear color
         glViewport(0, 0, Global.VIEWPORT_WIDTH, Global.VIEWPORT_HEIGHT);
@@ -166,7 +154,7 @@ public class TextSprite extends Sprite {
                 Global.CLEAR_COLOR[3]);
 
         // Create the new texture and Sprite and return them
-        TextureAtlas new_texture = new TextureAtlas(texture_id[0], 1, 1, new_texture_width, new_texture_height);
+        TextureAtlas new_texture = new TextureAtlas(ids[1], 1, 1, new_texture_width, new_texture_height);
         return new Sprite(new_texture, 0, 0, null, BlendMode.JUST_TEXTURE,
                 new float[] {
                     -this.width / 2,  0.5f, // top left

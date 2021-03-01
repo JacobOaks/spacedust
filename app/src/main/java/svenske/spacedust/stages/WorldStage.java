@@ -29,7 +29,7 @@ public class WorldStage implements Stage {
 
     Camera camera;
     ShaderProgram shader_program;
-    Sprite sprite1, sprite2;
+    Sprite sprite;
 
     @Override
     public void init(Node previous_continuous_data) {
@@ -38,25 +38,7 @@ public class WorldStage implements Stage {
         this.camera = new Camera(0f, 0f, 0.2f);
 
         Font font = new Font(R.drawable.font, R.raw.font_info);
-        TextAnimation ta = new TextAnimation(0.8f, 4,
-                new Font[]{ font },
-                new float[][] { new float[] { 1.0f, 0.0f, 0.0f, 1.0f } },
-                new String[] { "Hey", "Dude" },
-                new BlendMode[] { BlendMode.MULTIPLICATIVE, BlendMode.ADDITIVE,
-                        BlendMode.SUBTRACTIVE, BlendMode.AVG });
-
-        Map<String, TextAnimation> anims = new HashMap<>();
-        anims.put("sole", ta);
-        this.sprite1 = new AnimatedTextSprite(anims, "sole");
-
-        TextureAtlas texture_atlas = new TextureAtlas(R.drawable.example_atlas, 3, 3);
-        Animation anim = new Animation(0.2f, 9,
-                new int[] { 0, 0, 0, 1, 1, 1, 2, 2, 2 },
-                new int[] { 0, 1, 2 },
-                new float[][] { null }, new BlendMode[] { BlendMode.JUST_TEXTURE } );
-        Map<String, Animation> anims2 = new HashMap<>();
-        anims2.put("sole", anim);
-        this.sprite2 = new AnimatedSprite(texture_atlas, anims2, "sole");
+        this.sprite = new TextSprite(font, null, BlendMode.JUST_TEXTURE, "Some text").solidify();
     }
 
     @Override
@@ -73,8 +55,7 @@ public class WorldStage implements Stage {
 
     @Override
     public void update(float dt) {
-        this.sprite1.update(dt);
-        this.sprite2.update(dt);
+        this.sprite.update(dt);
     }
 
     @Override
@@ -84,8 +65,7 @@ public class WorldStage implements Stage {
 
         this.shader_program.bind();
         this.camera.set_uniforms(this.shader_program);
-        this.sprite1.render(this.shader_program, x, y, 1f, 1f);
-        this.sprite2.render(this.shader_program, x, y + 2f, 1f, 1f);
+        this.sprite.render(this.shader_program, x, y, 2f, 2f);
 
         ShaderProgram.unbind_any_shader_program();
     }

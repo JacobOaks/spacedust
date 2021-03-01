@@ -25,13 +25,14 @@ public class AnimatedSprite extends Sprite {
      * animation).
      * @param starting_anim the name of the animation to start with/
      */
-    public AnimatedSprite(TextureAtlas atlas, Map<String, Animation> anims, String starting_anim) {
+    public AnimatedSprite(TextureAtlas atlas, Map<String, Animation> anims, String starting_anim,
+                          float[] vertex_positions, short[] draw_order) {
         super(atlas,
                 anims.get(starting_anim).atlas_rows != null ? anims.get(starting_anim).atlas_rows[0] : null,
                 anims.get(starting_anim).atlas_cols != null ? anims.get(starting_anim).atlas_cols[0] : null,
                 anims.get(starting_anim).colors != null ? anims.get(starting_anim).colors[0] : null,
                 anims.get(starting_anim).blend_modes[0],
-                null, null);
+                vertex_positions, draw_order);
 
         this.anims = anims;
         this.current_anim = this.anims.get(starting_anim);
@@ -91,6 +92,7 @@ public class AnimatedSprite extends Sprite {
      */
     public void change_animation(String animation_name, boolean carry_over) {
         this.current_anim = this.anims.get(animation_name);
+        this.time_left = this.current_anim.frame_time;
         this.switch_frames(carry_over ? this.current_frame : 0);
     }
 }
