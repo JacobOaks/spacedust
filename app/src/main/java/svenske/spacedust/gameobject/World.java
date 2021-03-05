@@ -8,6 +8,7 @@ import java.util.List;
 import svenske.spacedust.R;
 import svenske.spacedust.graphics.BlendMode;
 import svenske.spacedust.graphics.Camera;
+import svenske.spacedust.graphics.LightSource;
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
 import svenske.spacedust.graphics.TextureAtlas;
@@ -23,13 +24,16 @@ public class World {
     public final float WORLD_HEIGHT = 75f;
 
     // World attributes
-    public final float AMBIENT_LIGHT = 1.1f;
+    public final float AMBIENT_LIGHT = 0.85f;
     ShaderProgram sp;
     Camera cam;
 
     // World objects
     GameObject background;
     List<GameObject> world_objects;
+
+    // TODO: Move to objects via an interface LightEmitter
+    LightSource ls = new LightSource(new float[] { 0.1f, 0.1f, -0.1f }, 5f, 4f, new float[] { 2.5f, 5.5f, 3f });
 
     // Constructs the world with the given continuous data from a previous destruction of context.
     public World(Node continuous_data) {
@@ -64,6 +68,7 @@ public class World {
     // Updates all of the world objects.
     public void update(float dt) {
         this.background.update(dt);
+        this.ls.update(dt);
         for (GameObject go : this.world_objects) go.update(dt);
     }
 
@@ -71,6 +76,10 @@ public class World {
     public void render() {
         this.sp.bind();
         this.sp.set_uniform("ambient_light", this.AMBIENT_LIGHT);
+        this.sp.set_uniform("max_brightness", 10f);
+        this.sp.set_light_uniform("lights", 0, ls, 0f, 0f);
+        // this.sp.set_light_uniform("lights", 1, ls, 3f, 0f);
+        // this.sp.set_light_uniform("lights", 2, ls, 1.5f, 3f);
         this.cam.set_uniforms(this.sp);
         this.background.render(this.sp); // Render background first obviously
         for (GameObject go : this.world_objects) go.render(this.sp);

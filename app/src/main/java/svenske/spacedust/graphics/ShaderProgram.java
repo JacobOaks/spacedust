@@ -75,6 +75,8 @@ public class ShaderProgram {
         int loc = this.get_uniform_location(name);
         if (value.length == 4)
             GLES20.glUniform4fv(loc, 1, value, 0);
+        else if (value.length == 3)
+            GLES20.glUniform3fv(loc, 1, value, 0);
         else
             throw new RuntimeException("[spdt/shaderprogram]: " +
                     "invalid length array given in set_uniform: " + value.length);
@@ -88,6 +90,15 @@ public class ShaderProgram {
     // Sets the uniform with the given name to the given int.
     public void set_uniform(String name, int value) {
         GLES20.glUniform1i(this.get_uniform_location(name), value);
+    }
+
+    // Sets the uniform with the given name to the given LightSource.
+    public void set_light_uniform(String array_name, int i, LightSource ls, float x, float y) {
+        this.set_uniform(array_name + "[" + i + "].reach", ls.get_reach());
+        this.set_uniform(array_name + "[" + i + "].intensity", ls.get_intensity());
+        this.set_uniform(array_name + "[" + i + "].glow", ls.get_glow());
+        this.set_uniform(array_name + "[" + i + "].x", x);
+        this.set_uniform(array_name + "[" + i + "].y", y);
     }
 
     // Only one shader program can be bound at a time. This method unbinds any/all.

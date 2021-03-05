@@ -9,7 +9,7 @@
 
 // A struct describing a light source
 struct LightSource {
-    vec4 glow;
+    vec3 glow;
     float reach;
     float intensity;
     float x;
@@ -23,8 +23,11 @@ uniform vec4 vertex_color;
 uniform sampler2D texture_sampler;
 uniform int blend_mode; // Enumerated in same order as Java BlendMode class
 
-// Lighting Uniforms
+// Lighting Uniforms/Attributes
+const int MAX_LIGHTS = 5;
 uniform float ambient_light;
+uniform float max_brightness;
+uniform LightSource lights[MAX_LIGHTS];
 
 // Variables from vertex shader
 varying vec2 tex_coords_f;
@@ -52,42 +55,35 @@ vec4 get_unlit_color(sampler2D texture_sampler, vec2 tex_coords_f, int blend_mod
 // Applies lighting to an unlit color
 vec4 apply_lighting(vec4 unlit_color) {
 
-    // Apply ambient light
-    vec4 lit_color = unlit_color * ambient_light;
+    // Extract just rgb and apply ambient light
+    vec3 working_color = unlit_color.xyz * ambient_light;
 
-    // Create light
-    LightSource light;
-    light.reach = 5.0;
-    light.intensity = 2.0;
-    light.glow = vec4(1.0, -0.5, -0.5, 1.0);
-    light.x = 2.0;
-    light.y = 2.0;
+    // Keep track of cumulative brightness and glow across all lights
+    float cum_brightness = 1.0;
+    vec3  cum_glow = vec3(1.0, 1.0, 1.0);
 
-    // TODO: for more than one light
+    // Loop through all lights and apply each if within distance
+    for (int i = 0; i < MAX_LIGHTS; i++) {
 
-    float light_dist = distance(vec2(light.x, light.y), frag_world_pos);
-    if (light_dist <= light.reach) { // If this light is close enough to affect this fragment
+        // Use this check to weed out non-important lights, or end-of-array idx
+        if (lights[i].reach > 0.0) {
+            float light_dist = distance(vec2(lights[i].x, lights[i].y), frag_world_pos);
+            if (light_dist <= lights[i].reach) { // If light close enough to affect fragment
 
-        // 0.0: center of light's reach; 1.0: just out of reach of light;
-        float farness = light_dist / light.reach;
+                // 0.0: center of light's reach; 1.0: just out of reach of light;
+                float farness = light_dist / lights[i].reach;
 
-        // Completely out of reach -> brightness stays the same
-        float out_of_reach_mul = 1.0;
-        // Center of reach -> color gets brighter by factor of light_intensity
-        float center_of_reach_mul = light.intensity + 1.0;
-        // Calculate where along this spectrum we are
-        float brightness_mul = farness * out_of_reach_mul + (1.0 - farness) * center_of_reach_mul;
-        lit_color = lit_color * brightness_mul; // Apply brightness change
+                // Add brightness from this light to cumulative brightness
+                cum_brightness += (1.0 - farness) * lights[i].intensity;
 
-        /**
-         * Do glow + 1 because theoretically we shouldn't subtract light. However, to really bring
-         * focus to a specific color, negative rgb components of glow CAN subtract color components.
-         */
-        vec4 center_of_reach_glow_mul = light.glow + 1.0;
-        // Apply glow based on farness similar to how brightness is applied
-        lit_color = lit_color * (farness * vec4(1.0, 1.0, 1.0, 1.0) + (1.0 - farness) * center_of_reach_glow_mul);
+                // Multiply glow from this light to cumulative glow
+                cum_glow = cum_glow * (farness * vec3(1.0, 1.0, 1.0) + (1.0 - farness) * (lights[i].glow + 1.0));
+            }
+        }
     }
-    return lit_color;
+    working_color = working_color * min(max_brightness, cum_brightness);
+    working_color = working_color * cum_glow;
+    return vec4(working_color, unlit_color.w);
 }
 
 // Main function
