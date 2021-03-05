@@ -4,7 +4,7 @@ package svenske.spacedust.utils;
 public class Global {
 
     // Color to pass to glClearColor()
-    public static final float[] CLEAR_COLOR = new float[] { 0.46f, 0.46f, 1.0f, 1.0f };
+    public static final float[] CLEAR_COLOR = new float[] { 0.0f, 0.0f, 0.0f, 1.0f };
 
     // Width and height of the viewport (in pixels)
     public static int VIEWPORT_WIDTH = 0;

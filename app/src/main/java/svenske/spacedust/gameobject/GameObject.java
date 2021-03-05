@@ -27,7 +27,8 @@ public class GameObject {
     protected Sprite sprite;
     protected float x, y;
     protected float sx, sy;
-    protected float vx, vy;
+    protected float vx, vy; // in units / second
+    protected float rot;    // in radians
 
     // Constructs the GameObject with the given Sprite (can be null) and position.
     public GameObject(Sprite sprite, float x, float y) {
@@ -41,13 +42,13 @@ public class GameObject {
     // Updates the GameObject's Sprite if not null.
     void update(float dt) {
         if (this.sprite != null) this.sprite.update(dt);
-        this.x += this.vx;
-        this.y += this.vy;
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
     }
 
     // Renders the GameObject using the given ShaderProgram
     void render(ShaderProgram sp) {
-        if (this.sprite != null) this.sprite.render(sp, this.x, this.y, this.sx, this.sy);
+        if (this.sprite != null) this.sprite.render(sp, this.x, this.y, this.sx, this.sy, this.rot);
     }
 
     // Updates the GameObject's position
@@ -63,10 +64,10 @@ public class GameObject {
     }
 
     // Return the GameObject's current position
-    float[] get_pos() { return new float[] { this.x, this.y }; }
+    public float[] get_pos() { return new float[] { this.x, this.y }; }
 
     // Return the GameObject's current size (size of Sprite with scale taken into account)
-    float[] get_size() {
+    public float[] get_size() {
         if (this.sprite != null) {
             float[] sprite_size = this.sprite.get_size();
             return new float[] { sprite_size[0] * this.sx, sprite_size[1] * this.sy };

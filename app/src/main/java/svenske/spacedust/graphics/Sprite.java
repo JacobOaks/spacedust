@@ -159,11 +159,13 @@ public class Sprite {
     /**
      * Renders the Sprite
      * The given position means different things depending on the shader program used. This method
-     * assumes the given shader program always has "obj_x" and "obj_y" uniforms
+     * assumes the given shader program always has "obj_x", "obj_y", "sx", and "sy" uniforms.
      * @param sx a horizontal scaling factor
      * @param sy a vertical scaling factor
+     * @param rot how much to rotate the sprite in radians if the given shader program supports
+     *            rotation
      */
-    public void render(ShaderProgram shader_program, float x, float y, float sx, float sy) {
+    public void render(ShaderProgram shader_program, float x, float y, float sx, float sy, float rot) {
 
         // Set vertex position attribute data
         int position_attrib_loc = shader_program.get_attribute_location("vertex_position");
@@ -197,6 +199,8 @@ public class Sprite {
         shader_program.set_uniform("obj_y", y);
         shader_program.set_uniform("obj_scale_x", sx);
         shader_program.set_uniform("obj_scale_y", sy);
+        if (shader_program.uniform_exists("obj_rot"))
+            shader_program.set_uniform("obj_rot", rot);
 
         // Draw
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, this.vertex_count, GLES20.GL_UNSIGNED_SHORT, this.draw_order);

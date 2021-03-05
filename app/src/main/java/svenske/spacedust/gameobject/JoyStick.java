@@ -43,7 +43,7 @@ public class JoyStick extends GameObject implements InputReceiver {
         void receive_dir_vec(String id, float x, float y, float magnitude);
 
         // Called whenever the JoyStick's relevant pointer is released and input has ended.
-        void input_ended();
+        void input_ended(String id);
     }
 
     // Attributes
@@ -53,21 +53,23 @@ public class JoyStick extends GameObject implements InputReceiver {
     private int assigned_pointer = -1; // The ID of a relevant pointer
 
     // Position attributes
-    private float outer_circle_radius = 0.43f; // Radius of outer circle in aspect-norm coordinates
-    private float inner_circle_radius = 0.15f; // Radius of inner circle in aspect-norm coordinates
+    private float inner_circle_radius_ratio = 0.2f; // Ratio of inner circle radius to outer
     // Inner circle offset from the center of the outer circle (aspect norm space)
     private float ico_x = 0f;
     private float ico_y = 0f;
+
+    // TODO Replace radius with just scale
 
     /**
      * Constructs the JoyStick at the given aspect-normalized position and with the given receiver
      * to send updates to.
      */
-    public JoyStick(String id, float x, float y, JoystickReceiver receiver) {
+    public JoyStick(String id, float x, float y, float inner_circle_radius_ratio,
+                    JoystickReceiver receiver) {
         super(null, x, y);
         this.id = id;
+        this.inner_circle_radius_ratio = inner_circle_radius_ratio;
         this.receiver = receiver;
-        this.sx = this.sy = outer_circle_radius * 2;
 
         // Inner circle sprite
         this.inner_circle = new Sprite(
@@ -87,7 +89,7 @@ public class JoyStick extends GameObject implements InputReceiver {
         float dx = pos[0] - this.x;
         float dy = pos[1] - this.y;
         double distance = Math.sqrt((dx * dx) + (dy * dy));
-        return !(distance > this.outer_circle_radius);
+        return !(distance > this.get_outer_circle_radius());
     }
 
     /**
@@ -105,12 +107,13 @@ public class JoyStick extends GameObject implements InputReceiver {
          * Calculate magnitude as 1 if the finger is outside of the JoyStick, or 0-1 based off of
          * how far along the outer circle's radius the finger is.
          */
-        float magnitude = Math.min(1f, (float)(distance / this.outer_circle_radius));
+        float outer_circle_radius = this.get_outer_circle_radius();
+        float magnitude = Math.min(1f, (float)(distance / outer_circle_radius));
 
         // Set the correct inner circle's position
-        if (distance > this.outer_circle_radius) { // If outside of JoyStick, place on outer edge
-            this.ico_x = (float)(dx / distance) * this.outer_circle_radius;
-            this.ico_y = (float)(dy / distance) * this.outer_circle_radius;
+        if (distance > outer_circle_radius) { // If outside of JoyStick, place on outer edge
+            this.ico_x = (float)(dx / distance) * outer_circle_radius;
+            this.ico_y = (float)(dy / distance) * outer_circle_radius;
         } else { // Otherwise place exactly where it is.
             this.ico_x = dx;
             this.ico_y = dy;
@@ -158,7 +161,7 @@ public class JoyStick extends GameObject implements InputReceiver {
                     Log.d("spdt/joystick", "assigned pointer no longer valid");
                 this.assigned_pointer = -1;
                 this.ico_x = this.ico_y = 0f; // Reset inner-circle position
-                if (this.receiver != null) this.receiver.input_ended();
+                if (this.receiver != null) this.receiver.input_ended(this.id);
             } else {
 
                 // Update inner circle position
@@ -179,9 +182,25 @@ public class JoyStick extends GameObject implements InputReceiver {
     // Renders the outer and inner circle sprites
     @Override
     public void render(ShaderProgram sp) {
-        // Default square model is 1f, so scale should be set to the diameter.
         super.render(sp);
         this.inner_circle.render(sp, this.x + this.ico_x, this.y + this.ico_y,
-                this.inner_circle_radius * 2, this.inner_circle_radius * 2);
+                this.get_inner_circle_radius() * 2, this.get_inner_circle_radius() * 2,
+                0f);
+    }
+
+    @Override
+    public void set_scale(float sx, float sy) {
+        if (sx != sy)
+            throw new RuntimeException("[spdt/joystick] " +
+                    "sx must equal sy. Wtf kind of joysticks are you using???");
+        super.set_scale(sx, sy);
+    }
+
+    private float get_outer_circle_radius() {
+        return this.sx / 2;
+    }
+
+    private float get_inner_circle_radius() {
+        return this.inner_circle_radius_ratio * this.get_outer_circle_radius();
     }
 }

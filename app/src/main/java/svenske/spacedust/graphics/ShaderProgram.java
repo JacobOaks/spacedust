@@ -66,7 +66,7 @@ public class ShaderProgram {
     }
 
     // Return whether the uniform with the given name exists in this shader program.
-    private boolean uniform_exists(String name) {
+    public boolean uniform_exists(String name) {
         return (GLES20.glGetUniformLocation(this.program, name) != -1);
     }
 

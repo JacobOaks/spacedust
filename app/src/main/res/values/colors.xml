@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="slick_blue">#5454ff</color>
-    <color name="lighter_slick_blue">#7575ff</color>
+    <color name="theme">#13022E</color>
+    <color name="lighter_theme">#1C033F</color>
     <color name="white">#ffffff</color>
 </resources>

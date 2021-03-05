@@ -134,7 +134,7 @@ public class TextSprite extends Sprite {
 
         // Bind shader program and render
         sp.bind();
-        this.render(sp, 0f, 0f, 2f / this.width, -2f);
+        this.render(sp, 0f, 0f, 2f / this.width, -2f, 0f);
 
         // Cleanup
         ShaderProgram.unbind_any_shader_program();

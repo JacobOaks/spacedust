@@ -17,6 +17,9 @@ import svenske.spacedust.utils.Node;
 // Encapsulation for all that is to be considered part of the World (as opposed to the HUD).
 public class World {
 
+    public final float WORLD_WIDTH = 100f;
+    public final float WORLD_HEIGHT = 75f;
+
     // World attributes
     ShaderProgram sp;
     Camera cam;
@@ -27,7 +30,16 @@ public class World {
 
         this.sp = new ShaderProgram(R.raw.vertex_world, R.raw.fragment_world);
         this.cam = new Camera(0f, 0f, 1f);
+        this.cam.set_bounds(-WORLD_WIDTH / 2f, WORLD_WIDTH / 2f,
+                -WORLD_HEIGHT / 2f, WORLD_HEIGHT / 2f);
         this.game_objects = new ArrayList<>();
+
+        TextureAtlas background_atlas = new TextureAtlas(R.drawable.background, 1, 1);
+        Sprite background_sprite = new Sprite(background_atlas, 0, 0,
+                new float[] { 0.1f, 0f, 0.1f, 1f }, BlendMode.AVG, null, null);
+        GameObject background = new GameObject(background_sprite, 0f, 0f);
+        background.set_scale(WORLD_WIDTH, WORLD_HEIGHT);
+        this.game_objects.add(background);
 
         if (continuous_data !=  null) {
 
@@ -65,6 +77,7 @@ public class World {
         this.sp.set_uniform("aspect_ratio",
                 ((float) Global.VIEWPORT_WIDTH / (float)Global.VIEWPORT_HEIGHT));
         ShaderProgram.unbind_any_shader_program();
+        this.cam.update_bounds();
     }
 
     // Add a new GameObject to the World

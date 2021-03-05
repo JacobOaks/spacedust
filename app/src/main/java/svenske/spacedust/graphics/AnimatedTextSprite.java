@@ -178,7 +178,7 @@ public class AnimatedTextSprite extends TextSprite {
                         // Calculate the correct x-scaling to fit the whole text into one atlas spot
                         2f / (max_width * (float)max_frames),
                         // Calculate the correct y-scaling to fit the whole text into one atlas spot
-                        -2f / (float)this.anims.size());
+                        -2f / (float)this.anims.size(), 0f);
             }
 
             // Create new animation object and put in map

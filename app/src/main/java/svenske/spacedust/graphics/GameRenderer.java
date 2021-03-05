@@ -135,5 +135,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
      * @return continuous data from the Stage to be passed up to be saved across OpenGL ES context
      *         changes.
      */
-    public Node get_continuous_data() { return this.stage.get_continuous_data(); }
+    public Node get_continuous_data() {
+        return this.stage == null ? null : this.stage.get_continuous_data();
+    }
 }
