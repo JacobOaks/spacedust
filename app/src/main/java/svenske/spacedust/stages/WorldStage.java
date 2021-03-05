@@ -24,6 +24,7 @@ import svenske.spacedust.graphics.Sprite;
 import svenske.spacedust.graphics.TextAnimation;
 import svenske.spacedust.graphics.TextSprite;
 import svenske.spacedust.graphics.TextureAtlas;
+import svenske.spacedust.utils.Global;
 import svenske.spacedust.utils.Node;
 
 /**
@@ -39,6 +40,7 @@ public class WorldStage implements Stage {
     // Important GameObjects
     Player player;
     GameObject FPS_text;
+    Bar player_hp_bar;
 
     // Create's the World and the HUD of the WorldStage as well as its starting GameObjects.
     @Override
@@ -59,14 +61,18 @@ public class WorldStage implements Stage {
     private void create_player() {
 
         // Create player health bar
-        Bar player_hp_bar = new Bar(new float[] { 0f, 1f, 0f, 0.5f}, new float[] { 1f, 0f, 0f, 0.8f},
+        this.player_hp_bar = new Bar(new float[] { 0f, 1f, 0f, 0.5f}, new float[] { 1f, 0f, 0f, 0.8f},
                 new float[] { 0.5f, 0.5f, 0.5f, 0.3f }, 1f, 0.1f, 0f, 0f);
         this.hud.add_object(player_hp_bar,
-                null, HUD.RelativePlacement.BELOW, HUD.Alignment.RIGHT, 0.1f);
+                null, HUD.RelativePlacement.BELOW,
+                // If landscape, place in upper-right corner. If portrait, place in upper-left
+                ((float) Global.VIEWPORT_WIDTH / (float) Global.VIEWPORT_HEIGHT) >= 1.0f ?
+                        HUD.Alignment.LEFT : HUD.Alignment.RIGHT,
+                0.1f);
 
         // Create player
         TextureAtlas ta = new TextureAtlas(R.drawable.texture_sheet_2, 16, 16);
-        this.player = new Player(ta, this.world.get_bullets(), player_hp_bar, 0f, 0f);
+        this.player = new Player(ta, this.world.get_bullets(), this.player_hp_bar, 0f, 0f);
         this.world.add_game_object(this.player);
     }
 
@@ -99,7 +105,10 @@ public class WorldStage implements Stage {
         title_sprite.set_blend_mode(BlendMode.MULTIPLICATIVE);
         GameObject title = new GameObject(title_sprite, 0f, 0f);
         title.set_scale(0.14f, 0.14f);
-        this.hud.add_object(title, null,
+        this.hud.add_object(title,
+                // If landscape, place on top-left screen edge. If portrait, place below HP bar
+                ((float) Global.VIEWPORT_WIDTH / (float) Global.VIEWPORT_HEIGHT) >= 1.0f ?
+                        this.player_hp_bar : null,
                 HUD.RelativePlacement.BELOW, HUD.Alignment.LEFT, 0.05f);
 
         // Create version info
