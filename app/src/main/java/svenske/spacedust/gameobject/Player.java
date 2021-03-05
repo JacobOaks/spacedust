@@ -46,7 +46,7 @@ public class Player extends GameObject implements JoyStick.JoystickReceiver, Lig
     // Health info
     private final float max_health = 10f;     // What's the maximum health I can have?
     private float health = 10f;               // How much health do I currently have?
-    private float health_regen_rate = 0.5f;   // How quickly health should regenerate (health/s);
+    private float health_regen_rate = 1f;     // How quickly health should regenerate (health/s);
     private float health_regen_cooldown = 5f; // Time after being damaged where regeneration begins
     private float health_regen_counter  = 0f; // Counter to health regeneration beginning
     private Bar hp_bar;                       // A reference to the bar to update with HP changes

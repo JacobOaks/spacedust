@@ -38,15 +38,25 @@ public class WorldStage implements Stage {
 
     // Important GameObjects
     Player player;
-    GameObject FPSText;
+    GameObject FPS_text;
 
     // Create's the World and the HUD of the WorldStage as well as its starting GameObjects.
     @Override
     public void init(Node previous_continuous_data) {
 
+        // Initialize world and HUD
         this.world = new World(previous_continuous_data);
         this.world.get_camera().set_zoom(0.25f);
         this.hud = new HUD();
+
+        // Create objects
+        this.create_player();
+        this.create_joysticks();
+        this.create_text();
+    }
+
+    // Creates the player and the player's health bar
+    private void create_player() {
 
         // Create player health bar
         Bar player_hp_bar = new Bar(new float[] { 0f, 1f, 0f, 0.5f}, new float[] { 1f, 0f, 0f, 0.8f},
@@ -58,6 +68,10 @@ public class WorldStage implements Stage {
         TextureAtlas ta = new TextureAtlas(R.drawable.texture_sheet_2, 16, 16);
         this.player = new Player(ta, this.world.get_bullets(), player_hp_bar, 0f, 0f);
         this.world.add_game_object(this.player);
+    }
+
+    // Creates the JoySticks
+    private void create_joysticks() {
 
         // Create movement joystick
         JoyStick movement_stick = new JoyStick("movement",
@@ -72,23 +86,40 @@ public class WorldStage implements Stage {
         rotation_stick.set_scale(0.6f, 0.6f);
         this.hud.add_object(rotation_stick,
                 null, HUD.RelativePlacement.ABOVE, HUD.Alignment.RIGHT, 0.1f);
+    }
+
+    // Creates text to put on the HUD
+    private void create_text() {
 
         // Create title
         Font font = new Font(R.drawable.font, R.raw.font_info);
         Sprite title_sprite = new TextSprite(font, new float[] { 1f, 1f, 1f, 1f },
                 BlendMode.MULTIPLICATIVE, "Space Dust").solidify();
+        title_sprite.set_color(new float[] { 1f, 1f, 1f, 0.6f });
+        title_sprite.set_blend_mode(BlendMode.MULTIPLICATIVE);
         GameObject title = new GameObject(title_sprite, 0f, 0f);
         title.set_scale(0.14f, 0.14f);
         this.hud.add_object(title, null,
                 HUD.RelativePlacement.BELOW, HUD.Alignment.LEFT, 0.05f);
 
-        // Create FPS text
-        Sprite fps_text_sprite = new TextSprite(font, new float[] { 1f, 1f, 1f, 1f },
-                BlendMode.MULTIPLICATIVE, "FPS: ");
-        FPSText = new GameObject(fps_text_sprite, 0f,0f);
-        FPSText.set_scale(0.07f, 0.07f);
-        this.hud.add_object(FPSText,
+        // Create version info
+        Sprite version_sprite = new TextSprite(font, new float[] { 1f, 1f, 1f, 1f },
+                BlendMode.MULTIPLICATIVE, "(prototype 1)").solidify();
+        version_sprite.set_color(new float[] { 1f, 1f, 1f, 0.6f });
+        version_sprite.set_blend_mode(BlendMode.MULTIPLICATIVE);
+        GameObject version_text = new GameObject(version_sprite, 0f, 0f);
+        version_text.set_scale(0.05f, 0.05f);
+        this.hud.add_object(version_text,
                 title, HUD.RelativePlacement.BELOW, HUD.Alignment.LEFT, 0.05f);
+
+        // Create FPS text
+        Sprite fps_text_sprite = new TextSprite(font, new float[] { 1f, 1f, 1f, 0.6f },
+                BlendMode.MULTIPLICATIVE, "FPS: ");
+        this.FPS_text = new GameObject(fps_text_sprite, 0f,0f);
+        this.FPS_text.set_scale(0.07f, 0.07f);
+        this.hud.add_object(FPS_text,
+                version_text, HUD.RelativePlacement.BELOW, HUD.Alignment.LEFT, 0.05f);
+
     }
 
     // Responds to input by allowing the HUD and the World to respond to it.
@@ -112,7 +143,7 @@ public class WorldStage implements Stage {
     // Responds to FPS updates by reflecting the new FPS via some text on the screen.
     @Override
     public void fps_update(float fps) {
-        ((TextSprite)this.FPSText.get_sprite()).set_text("FPS: " + fps);
+        ((TextSprite)this.FPS_text.get_sprite()).set_text("FPS: " + fps);
     }
 
     // Renders the world, then the HUD.

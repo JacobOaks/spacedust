@@ -229,5 +229,12 @@ public class Sprite {
         if (this.color != null && this.color.length != 4)
             throw new RuntimeException("[spdt/sprite]: " +
                     " invalid color array length " + this.color.length);
+        Sprite.check_blend_mode(this.atlas != null, this.color != null, this.blend_mode);
+    }
+
+    // Modify the Sprite's blend mode
+    public void set_blend_mode(BlendMode bm) {
+        this.blend_mode = bm;
+        Sprite.check_blend_mode(this.atlas != null, this.color != null, this.blend_mode);
     }
 }
