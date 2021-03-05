@@ -6,11 +6,12 @@ import svenske.spacedust.graphics.Sprite;
 /**
  * A generic class that describes anything that:
  * - can be updated
- * - may be rendered
+ * - can be rendered
  * - has position
  * - has scale
- * - may have size
- * - may have velocity
+ * - has rotation
+ * - has non-rotated size
+ * - has velocity
  *
  * GameObjects should assume they live in aspect/world space (can be thought of as equivalent in
  * this case).
@@ -66,7 +67,11 @@ public class GameObject {
     // Return the GameObject's current position
     public float[] get_pos() { return new float[] { this.x, this.y }; }
 
-    // Return the GameObject's current size (size of Sprite with scale taken into account)
+    /**
+     * @return the GameObject's size.
+     *
+     * NOTE: This assumes a rotation of zero, which may not be the case for this GameObject.
+     */
     public float[] get_size() {
         if (this.sprite != null) {
             float[] sprite_size = this.sprite.get_size();

@@ -58,8 +58,6 @@ public class JoyStick extends GameObject implements InputReceiver {
     private float ico_x = 0f;
     private float ico_y = 0f;
 
-    // TODO Replace radius with just scale
-
     /**
      * Constructs the JoyStick at the given aspect-normalized position and with the given receiver
      * to send updates to.

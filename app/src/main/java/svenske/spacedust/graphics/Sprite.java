@@ -22,6 +22,7 @@ public class Sprite {
      * Since the Sprite defaults to being square in shape, square data is stored here statically
      * to be reused
      */
+    public static final float DEFAULT_SQUARE_SIZE     = 1f;
     public static FloatBuffer SQUARE_VERTEX_POSITIONS = null;
     public static ShortBuffer SQUARE_DRAW_ORDER       = null;
     public static final int   SQUARE_VERTEX_COUNT     = 6;
@@ -32,16 +33,15 @@ public class Sprite {
      *
      * NOTE: These default positions cannot be changed. The assumption that these will never change
      * is deep throughout the codebase.
-     *
-     * // TODO: Change that shit (make constant, make size constant)
      */
     public static FloatBuffer get_square_vertex_positions_buffer() {
         if (SQUARE_VERTEX_POSITIONS == null) {
+            float half_size = DEFAULT_SQUARE_SIZE / 2f;
             float[] positions = {
-                    -0.5f,  0.5f, // top left
-                    -0.5f, -0.5f, // bottom left
-                     0.5f, -0.5f, // bottom right
-                     0.5f,  0.5f, // top right
+                    -half_size,  half_size, // top left
+                    -half_size, -half_size, // bottom left
+                     half_size, -half_size, // bottom right
+                     half_size,  half_size  // top right
             };
             SQUARE_VERTEX_POSITIONS = get_float_buffer_from(positions);
         }
@@ -112,7 +112,7 @@ public class Sprite {
         // Save vertex positions
         if (vertex_positions == null) { // default to square vertex positions
             this.vertex_positions = get_square_vertex_positions_buffer();
-            this.width = this.height = 1f;
+            this.width = this.height = DEFAULT_SQUARE_SIZE;
         } else {
             this.vertex_positions = get_float_buffer_from(vertex_positions);
             this.update_size(vertex_positions);
@@ -162,8 +162,7 @@ public class Sprite {
      * assumes the given shader program always has "obj_x", "obj_y", "sx", and "sy" uniforms.
      * @param sx a horizontal scaling factor
      * @param sy a vertical scaling factor
-     * @param rot how much to rotate the sprite in radians if the given shader program supports
-     *            rotation
+     * @param rot how much to rotate the sprite in radians
      */
     public void render(ShaderProgram shader_program, float x, float y, float sx, float sy, float rot) {
 
@@ -199,8 +198,7 @@ public class Sprite {
         shader_program.set_uniform("obj_y", y);
         shader_program.set_uniform("obj_scale_x", sx);
         shader_program.set_uniform("obj_scale_y", sy);
-        if (shader_program.uniform_exists("obj_rot"))
-            shader_program.set_uniform("obj_rot", rot);
+        shader_program.set_uniform("obj_rot", rot);
 
         // Draw
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, this.vertex_count, GLES20.GL_UNSIGNED_SHORT, this.draw_order);

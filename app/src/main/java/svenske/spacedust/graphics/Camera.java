@@ -2,7 +2,7 @@ package svenske.spacedust.graphics;
 
 import svenske.spacedust.utils.Global;
 
-// Represents a camera viewing a World
+// Represents a camera in a World. Cameras can be given strict bounds to restrict what can be seen.
 public class Camera {
 
     // Camera position and zoom
@@ -10,8 +10,8 @@ public class Camera {
     private float zoom;
 
     // Camera bounds info
-    private float min_x, max_x, min_y, max_y;
-    private float min_c_x, max_c_x, min_c_y, max_c_y;
+    private float min_x, max_x, min_y, max_y;         // Strict visibility bounds
+    private float min_c_x, max_c_x, min_c_y, max_c_y; // Calculated bounds for the camera's pos
     private boolean bounded = false;
 
     // Constructs the camera with the given starting positions and zoom
@@ -33,16 +33,22 @@ public class Camera {
     public float getY() { return this.y; }
     public float getZoom() { return this.zoom; }
 
-    // Mutators
+    // Sets the camera's zoom and updates the bounds (if there are any)
     public void set_zoom(float zoom) {
         this.zoom = zoom;
         this.update_bounds();
     }
+
+    // Sets the camera's position, checking its bounds if it has them
     public void set_position(float x, float y) {
         this.x = this.bounded ? Math.min(Math.max(x, this.min_c_x), this.max_c_x) : x;
         this.y = this.bounded ? Math.min(Math.max(y, this.min_c_y), this.max_c_y) : y;
     }
 
+    /**
+     * Sets the strict visibility bounds of the camera. I.e., if min_x = 0.1, no x < 0.1 will ever
+     * be visible with this camera. The same follows for the other three parameters.
+     */
     public void set_bounds(float min_x, float max_x, float min_y, float max_y) {
         this.min_x = min_x;
         this.max_x = max_x;
@@ -52,6 +58,10 @@ public class Camera {
         this.update_bounds();
     }
 
+    /**
+     * From the strict visibility bounds, calculate the bounds for the camera's position based off
+     * of aspect ratio and zoom.
+     */
     public void update_bounds() {
         if (this.bounded) {
             float view_width = 2f / this.zoom;

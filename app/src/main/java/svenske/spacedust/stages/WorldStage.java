@@ -39,7 +39,7 @@ public class WorldStage implements Stage {
     Player player;
     GameObject FPSText;
 
-    // Create's the World and the HUD of the WorldStage.
+    // Create's the World and the HUD of the WorldStage as well as its starting GameObjects.
     @Override
     public void init(Node previous_continuous_data) {
 
@@ -52,13 +52,19 @@ public class WorldStage implements Stage {
         this.player = new Player(ta, 0f, 0f);
         this.world.add_game_object(this.player);
 
-        // Create joystick
-        JoyStick movement_stick = new JoyStick("movement", 0f, 0f, 0.25f, player);
+        // Create movement joystick
+        JoyStick movement_stick = new JoyStick("movement",
+                0f, 0f, 0.25f, player);
         movement_stick.set_scale(0.6f, 0.6f);
-        this.hud.add_object(movement_stick, null, HUD.RelativePlacement.ABOVE, HUD.Alignment.LEFT, 0.1f);
-        JoyStick rotation_stick = new JoyStick("rotation", 0f, 0f, 0.25f, player);
+        this.hud.add_object(movement_stick,
+                null, HUD.RelativePlacement.ABOVE, HUD.Alignment.LEFT, 0.1f);
+
+        // Create shooting joystick
+        JoyStick rotation_stick = new JoyStick("shooting",
+                0f, 0f, 0.25f, player);
         rotation_stick.set_scale(0.6f, 0.6f);
-        this.hud.add_object(rotation_stick, null, HUD.RelativePlacement.ABOVE, HUD.Alignment.RIGHT, 0.1f);
+        this.hud.add_object(rotation_stick,
+                null, HUD.RelativePlacement.ABOVE, HUD.Alignment.RIGHT, 0.1f);
 
         // Create title
         Font font = new Font(R.drawable.font, R.raw.font_info);
@@ -74,9 +80,11 @@ public class WorldStage implements Stage {
                 BlendMode.MULTIPLICATIVE, "FPS: ");
         FPSText = new GameObject(fps_text_sprite, 0f,0f);
         FPSText.set_scale(0.07f, 0.07f);
-        this.hud.add_object(FPSText, title, HUD.RelativePlacement.BELOW, HUD.Alignment.LEFT, 0.05f);
+        this.hud.add_object(FPSText,
+                title, HUD.RelativePlacement.BELOW, HUD.Alignment.LEFT, 0.05f);
     }
 
+    // Responds to input by allowing the HUD and the World to respond to it.
     @Override
     public boolean input(MotionEvent me) {
         List<Integer> ignore_idx = new ArrayList<>();
@@ -85,6 +93,7 @@ public class WorldStage implements Stage {
         return true;
     }
 
+    // Updates the objects in the world and the HUD, and ensures the camera's position is correct.
     @Override
     public void update(float dt) {
         this.world.update(dt);
@@ -93,11 +102,13 @@ public class WorldStage implements Stage {
         this.world.get_camera().set_position(player_pos[0], player_pos[1]);
     }
 
+    // Responds to FPS updates by reflecting the new FPS via some text on the screen.
     @Override
     public void fps_update(float fps) {
         ((TextSprite)this.FPSText.get_sprite()).set_text("FPS: " + fps);
     }
 
+    // Renders the world, then the HUD.
     @Override
     public void render() {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
@@ -105,6 +116,7 @@ public class WorldStage implements Stage {
         this.hud.render();
     }
 
+    // Notifies the world and the HUD of the resize.
     @Override
     public void resized() {
         this.world.resized();
@@ -113,6 +125,6 @@ public class WorldStage implements Stage {
 
     @Override
     public Node get_continuous_data() {
-        return null;
+        return this.world.get_continuous_data();
     }
 }
