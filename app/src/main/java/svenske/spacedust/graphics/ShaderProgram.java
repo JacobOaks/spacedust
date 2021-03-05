@@ -7,34 +7,39 @@ import java.io.InputStream;
 import svenske.spacedust.GameActivity;
 import svenske.spacedust.utils.Utils;
 
+// A general class encapsulating an OpenGL shader program.
 public class ShaderProgram {
 
+    // OpenGL shader program ID
     int program;
 
-    // TODO: Load from resources
+    /**
+     * Loads the shader program by loading and compiling source code in the given vertex shader
+     * and fragment shader source files resource IDs.
+     */
     public ShaderProgram(int vertex_shader_resource_id, int fragment_shader_resource_id) {
 
-        // Load vertex shader
+        // Vertex shader
         InputStream is = GameActivity.app_resources.openRawResource(vertex_shader_resource_id);
         String vertex_shader_code = Utils.input_stream_to_string(is);
-        int vertex_shader = load_shader(GLES20.GL_VERTEX_SHADER, vertex_shader_code);
+        int vertex_shader = compile_shader(GLES20.GL_VERTEX_SHADER, vertex_shader_code);
 
-        // Load fragment shader
+        // Fragment shader
         is = GameActivity.app_resources.openRawResource(fragment_shader_resource_id);
         String fragment_shader_code = Utils.input_stream_to_string(is);
-        int fragment_shader = load_shader(GLES20.GL_FRAGMENT_SHADER, fragment_shader_code);
+        int fragment_shader = compile_shader(GLES20.GL_FRAGMENT_SHADER, fragment_shader_code);
 
-        // create empty OpenGL ES shader program
+        // Create empty OpenGL ES shader program
         this.program = GLES20.glCreateProgram();
         if (this.program == 0)
             throw new RuntimeException("[spdt/shaderprogram]: " +
                     " shader program couldn't be created");
 
-        // attach vertex and fragment shaders
+        // Attach vertex and fragment shaders
         GLES20.glAttachShader(this.program, vertex_shader);
         GLES20.glAttachShader(this.program, fragment_shader);
 
-        // link program together
+        // Link program together
         GLES20.glLinkProgram(this.program);
     }
 
@@ -42,6 +47,7 @@ public class ShaderProgram {
         GLES20.glUseProgram(this.program);
     }
 
+    // Return the location of the attribute with the given name in the shader program.
     public int get_attribute_location(String name) {
         int loc = GLES20.glGetAttribLocation(this.program, name);
         if (loc == -1)
@@ -50,6 +56,7 @@ public class ShaderProgram {
         return loc;
     }
 
+    // Return the location of the uniform with the given name in the shader program.
     private int get_uniform_location(String name) {
         int loc = GLES20.glGetUniformLocation(this.program, name);
         if (loc == -1)
@@ -58,6 +65,12 @@ public class ShaderProgram {
         return loc;
     }
 
+    // Return whether the uniform with the given name exists in this shader program.
+    private boolean uniform_exists(String name) {
+        return (GLES20.glGetUniformLocation(this.program, name) != -1);
+    }
+
+    // Sets the uniform with the given name to the given array of floats.
     public void set_uniform(String name, float[] value) {
         int loc = this.get_uniform_location(name);
         if (value.length == 4)
@@ -67,25 +80,32 @@ public class ShaderProgram {
                     "invalid length array given in set_uniform: " + value.length);
     }
 
+    // Sets the uniform with the given name to the given float.
     public void set_uniform(String name, float value) {
         GLES20.glUniform1f(this.get_uniform_location(name), value);
     }
 
+    // Sets the uniform with the given name to the given int.
     public void set_uniform(String name, int value) {
         GLES20.glUniform1i(this.get_uniform_location(name), value);
     }
 
+    // Only one shader program can be bound at a time. This method unbinds any/all.
     public static void unbind_any_shader_program() {
         GLES20.glUseProgram(0);
     }
 
-    // type is either GLES20.GL_VERTEX_SHADER or GLES20.GL_FRAGMENT_SHADER
-    private static int load_shader(int type, String code) {
+    /**
+     * Creates and compiles an individual shader program of the given type
+     * @param type either GLES20.GL_VERTEX_SHADER or GLES20.GL_FRAGMENT_SHADER
+     * @return the compiled shader's ID.
+     */
+    private static int compile_shader(int type, String code) {
 
-        // create shader
+        // Create shader
         int shader = GLES20.glCreateShader(type);
 
-        // add source code, compile, return
+        // Add source code, compile, return
         GLES20.glShaderSource(shader, code);
         GLES20.glCompileShader(shader);
         int[] status = new int[1];

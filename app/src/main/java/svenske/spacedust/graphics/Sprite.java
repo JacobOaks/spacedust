@@ -1,6 +1,7 @@
 package svenske.spacedust.graphics;
 
 import android.opengl.GLES20;
+import android.util.Log;
 
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
@@ -27,7 +28,12 @@ public class Sprite {
 
     /**
      * Here are some methods to get the default square vertex position buffer and the default square
-     * draw order buffer. This will create those buffers if it hasn't been done yet
+     * draw order buffer. This will create those buffers if it hasn't been done yet.
+     *
+     * NOTE: These default positions cannot be changed. The assumption that these will never change
+     * is deep throughout the codebase.
+     *
+     * // TODO: Change that shit (make constant, make size constant)
      */
     public static FloatBuffer get_square_vertex_positions_buffer() {
         if (SQUARE_VERTEX_POSITIONS == null) {
@@ -45,22 +51,40 @@ public class Sprite {
     public static ShortBuffer get_square_draw_order_buffer() {
         if (SQUARE_DRAW_ORDER == null)
             SQUARE_DRAW_ORDER = get_short_buffer_from(new short[]{ 0, 1, 2, 0, 2, 3 });
-
         return SQUARE_DRAW_ORDER;
     }
 
-    /**
-     * Buffers/rendering data for the sprite
-     */
+    // Calculates the size (width/height) of given vertex positions
+    protected static float[] calculate_size(float[] vertex_positions) {
+        float min_x = Float.MAX_VALUE, max_x = Float.MIN_VALUE;
+        float min_y = Float.MAX_VALUE, max_y = Float.MIN_VALUE;
+        for (int i = 0; i < vertex_positions.length; i++) {
+            if (i % 2 == 0) { // x position
+                if (vertex_positions[i] < min_x) min_x = vertex_positions[i];
+                else if (vertex_positions[i] > max_x) max_x = vertex_positions[i];
+            } else { // y position
+                if (vertex_positions[i] < min_y) min_y = vertex_positions[i];
+                else if (vertex_positions[i] > max_y) max_y = vertex_positions[i];
+            }
+        }
+        return new float[] { Math.abs(max_x - min_x), Math.abs(max_y - min_y) };
+    }
+
+    // Buffers/rendering data for the sprite
     protected FloatBuffer vertex_positions;    // actual vertex positions in model space
     protected FloatBuffer texture_coordinates; // texture coordinates
     protected ShortBuffer draw_order;          // draw order in triangles
     protected int vertex_count;                // total amount of drawn vertices
 
     // Sprite Attributes
-    TextureAtlas atlas;
-    float[] color;
-    BlendMode blend_mode;
+    protected TextureAtlas atlas;
+    protected float[] color;
+    protected BlendMode blend_mode;
+    protected float width, height;
+
+    // A callback for when the Sprite is resized
+    private ResizeCallback resize_callback;
+    public interface ResizeCallback { void on_resize(); }
 
     /**
      * Constructs a new Sprite
@@ -86,10 +110,13 @@ public class Sprite {
                     " invalid color array length " + this.color.length);
 
         // Save vertex positions
-        if (vertex_positions == null) // default to square vertex positions
+        if (vertex_positions == null) { // default to square vertex positions
             this.vertex_positions = get_square_vertex_positions_buffer();
-        else
+            this.width = this.height = 1f;
+        } else {
             this.vertex_positions = get_float_buffer_from(vertex_positions);
+            this.update_size(vertex_positions);
+        }
 
         // Save texture atlas and get coordinates
         this.atlas = atlas;
@@ -130,7 +157,7 @@ public class Sprite {
     public void update(float dt) {}
 
     /**
-     * Renders the sprite
+     * Renders the Sprite
      * The given position means different things depending on the shader program used. This method
      * assumes the given shader program always has "obj_x" and "obj_y" uniforms
      * @param sx a horizontal scaling factor
@@ -179,4 +206,18 @@ public class Sprite {
         if (tex_coords_attrib_loc != -1)
             GLES20.glDisableVertexAttribArray(tex_coords_attrib_loc);
     }
+
+    // Sets a callback to have its onEvent() called when the Sprite gets resized
+    public void set_resize_callback(ResizeCallback callback) { this.resize_callback = callback; }
+
+    // Sets the size of the Sprite and calls its resize callback if it has one
+    protected void update_size(float[] vertex_positions) {
+        float[] size = Sprite.calculate_size(vertex_positions);
+        this.width = size[0];
+        this.height = size[1];
+        if (this.resize_callback != null) this.resize_callback.on_resize();
+    }
+
+    // Return the Sprite's size
+    public float[] get_size() { return new float[] { this.width, this.height }; }
 }

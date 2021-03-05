@@ -5,9 +5,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Serves as a medium of data transfer using a tree-like data structure.
- */
+// Serves as a medium of data transfer using a tree-like data structure.
 public class Node {
 
     //Data
@@ -15,80 +13,58 @@ public class Node {
     private String name;
     private String value;
 
-    /**
-     * Constructs this Node by giving it all of its properties upfront.
-     */
+    // Constructs this Node by giving it all of its properties upfront.
     public Node(String name, String value, List<Node> children) {
         this.name = name;
         this.value = value;
         this.children = children;
     }
 
-    /**
-     * Constructs this Node by giving it a name, its data, and a single child.
-     */
+    // Constructs this Node by giving it a name, its data, and a single child.
     public Node(String name, String value, Node child) {
         this(name, value, new ArrayList<Node>());
         this.children.add(child);
     }
 
-    /**
-     * Constructs this Node without giving it any children.
-     */
+    // Constructs this Node without giving it any children.
     public Node(String name, String value) {
         this.name = name;
         this.value = value;
     }
 
-    /**
-     * Constructs this Node by solely giving it a name.
-     */
+    // Constructs this Node by solely giving it a name.
     public Node(String name) {
         this.name = name;
     }
 
-    /**
-     * Constructs this Node without setting any of its properties initially.
-     */
+    // Constructs this Node without setting any of its properties initially.
     public Node() {}
 
-    /**
-     * @return the list of this Node's children
-     */
+    // Return the list of this Node's children
     public List<Node> get_children() { return this.children; }
 
-    /**
-     * @return the amount of children this Node has
-     */
+    // Return the amount of children this Node has
     public int get_child_count() { return this.children.size(); }
 
-    /**
-     * Adds a child to this Node.
-     */
+    // Adds a child to this Node.
     public void add_child(Node child) {
         if (this.children == null) this.children = new ArrayList<>();
         this.children.add(child);
     }
 
-    /**
-     * Adds a child Node to this Node with just a name and a value
-     */
+    // Adds a child Node to this Node with just a name and a value
     public void add_child(String name, String value) {
         this.add_child(new Node(name, value));
     }
 
-    /**
-     * Adds multiple children to this Node.
-     */
+    // Adds multiple children to this Node.
     public void add_children(List<Node> children) {
         if (this.children == null) this.children = new ArrayList<>();
         if (children == null) return;
         this.children.addAll(children);
     }
 
-    /**
-     * Retrieves a child of this Node at the given index.
-     */
+    // Retrieves a child of this Node at the given index.
     public Node get_child(int index) {
         if (index > this.children.size())
             throw new RuntimeException("[spdt/node" +
@@ -96,17 +72,13 @@ public class Node {
         return this.children.get(index);
     }
 
-    /**
-     * Retrieves a child of this Node with the given name.
-     */
+    // Retrieves a child of this Node with the given name.
     public Node get_child(String name) {
         for (Node child : this.children) if (child.get_name().equals(name)) return child;
         return null;
     }
 
-    /**
-     * @return whether or not this Node has any children
-     */
+    // Returns whether or not this Node has any children
     public boolean has_children() {
         if (this.children == null) return false;
         return this.children.size() >= 1;
@@ -122,9 +94,7 @@ public class Node {
     public void set_value(String value) { this.value = value; }
     public void set_name(String name) { this.name = name; }
 
-    /**
-     * Reads a Node from a given resource.
-     */
+    // Reads a Node from a given resource.
     public static Node read_node(int resource_id) {
         Node node = new Node();
         List<String> data = Utils.read_resource(resource_id);

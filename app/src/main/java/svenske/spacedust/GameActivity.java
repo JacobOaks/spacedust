@@ -10,9 +10,7 @@ import svenske.spacedust.graphics.GameView;
 import svenske.spacedust.stages.StageName;
 import svenske.spacedust.utils.Node;
 
-/**
- * SpaceDust's Android Activity. The top layer of Android API I interact with.
- */
+// SpaceDust's Android Activity. The top layer of Android API I interact with.
 public class GameActivity extends Activity {
 
     // This is the stage that will always be loaded first when the app starts up.
@@ -67,6 +65,4 @@ public class GameActivity extends Activity {
         GameActivity.continuous_data = null;
         return cd;
     }
-
-   // public static Resources get_app_resources() { return GameActivity.resources; }
 }

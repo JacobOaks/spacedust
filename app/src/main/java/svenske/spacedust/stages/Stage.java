@@ -4,9 +4,7 @@ import android.view.MotionEvent;
 
 import svenske.spacedust.utils.Node;
 
-/*
- * Stages represent the different states the game can be in (menu, world, etc.)
- */
+// Stages represent the different states the game can be in (menu, world, etc.)
 public interface Stage {
 
     /**
@@ -23,20 +21,11 @@ public interface Stage {
     void init(Node previous_continuous_data);
 
     /**
-     * Called whenever there is scaling input from the Activity.
-     * @param scale_factor the factor by which the user scaled
-     * @param focal_x the middle of the scale x
-     * @param focal_y the middle of the scale y
-     * @return true if the input should not be responded to further, false otherwise
-     */
-    boolean scale_input(float scale_factor, float focal_x, float focal_y);
-
-    /**
-     * Called whenever there is input that was not previously handled as a gesture
+     * Called whenever there is input.
      * @param me the MotionEvent containing the input info
-     * @return true if the input should not be responded to further, false otherwise
+     * @return if the input was processed.
      */
-    boolean other_input(MotionEvent me);
+    boolean input(MotionEvent me);
 
     /**
      * Called every loop before render().
@@ -45,9 +34,10 @@ public interface Stage {
      */
     void update(float dt);
 
-    /**
-     * Called every loop after update(). Use this method for rendering only
-     */
+    // Called if FPS logging is enabled and a new FPS is calculated
+    void fps_update(float fps);
+
+    // Called every loop after update(). Use this method for rendering only
     void render();
 
     /**

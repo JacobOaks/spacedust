@@ -2,18 +2,11 @@ package svenske.spacedust.graphics;
 
 import android.opengl.GLES20;
 
-import java.nio.ByteBuffer;
-
 import svenske.spacedust.R;
 import svenske.spacedust.utils.Global;
 import svenske.spacedust.utils.Utils;
 
-import static android.opengl.GLES20.GL_COLOR_ATTACHMENT0;
 import static android.opengl.GLES20.GL_FRAMEBUFFER;
-import static android.opengl.GLES20.GL_NEAREST;
-import static android.opengl.GLES20.GL_RGBA;
-import static android.opengl.GLES20.GL_TEXTURE_2D;
-import static android.opengl.GLES20.GL_UNSIGNED_BYTE;
 import static android.opengl.GLES20.glDeleteFramebuffers;
 import static android.opengl.GLES20.glViewport;
 
@@ -25,7 +18,6 @@ import static android.opengl.GLES20.glViewport;
 public class TextSprite extends Sprite {
 
     protected String text; // The current text
-    protected float width;
 
     /**
      * Constructs the TextSprite using the given font, text color, blend mode, and starting text.
@@ -115,6 +107,7 @@ public class TextSprite extends Sprite {
         this.texture_coordinates = Utils.get_float_buffer_from(tex_coords);
         this.draw_order = Utils.get_short_buffer_from(draw_order);
         this.vertex_count = draw_order.length;
+        this.update_size(vertex_positions);
     }
 
     /**

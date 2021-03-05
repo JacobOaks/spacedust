@@ -88,18 +88,10 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Called whenever scaling input occurs
-     * @return true if the input should not be handled further, false otherwise
+     * Called whenever any input occurs.
+     * @return if the input was handled
      */
-    public boolean scale_input(float scale_factor, float focal_x, float focal_y) {
-        return this.stage.scale_input(scale_factor, focal_x, focal_y);
-    }
-
-    /**
-     * Called whenever any random input occurs that wasn't previously handled as a gesture
-     * @return true if the input should be not be responded to further, false otherwise
-     */
-    public boolean other_input(MotionEvent me) { return this.stage.other_input(me); }
+    public boolean input(MotionEvent me) { return this.stage.input(me); }
 
     /**
      * Performs timekeeping calculations and updates the current Stage.
@@ -118,15 +110,17 @@ public class GameRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Performs FPS calculations. Everytime a specified interval of time passes, FPS is logged
-     * in the verbose channel.
+     * Performs FPS calculations. Every time a specified interval of time passes, FPS is logged
+     * in the verbose channel, and sent to the Stage.
      */
     private void fps(float dt) {
         if (this.FPS_report_interval < 0) return;
         this.acc_frame++;
         this.acc_time += dt;
         if (this.acc_time > this.FPS_report_interval) {
-            Log.v("spdt/gamerenderer", "FPS: " + ((float)this.acc_frame / this.acc_time));
+            float fps = ((float)this.acc_frame / this.acc_time);
+            Log.v("spdt/gamerenderer", "FPS: " + fps);
+            this.stage.fps_update(fps);
             this.acc_frame = 0;
             this.acc_time = 0f;
         }

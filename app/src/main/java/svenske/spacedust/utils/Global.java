@@ -1,8 +1,6 @@
 package svenske.spacedust.utils;
 
-/**
- * A class to store global constants/other info
- */
+// A class to store global constants/other info
 public class Global {
 
     // Color to pass to glClearColor()

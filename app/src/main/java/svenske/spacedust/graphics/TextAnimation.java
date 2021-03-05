@@ -2,9 +2,7 @@ package svenske.spacedust.graphics;
 
 import android.util.Log;
 
-/**
- * An encapsulation for customizable text animation data.
- */
+// An encapsulation for customizable text animation data.
 public class TextAnimation {
 
     // Text animation attributes

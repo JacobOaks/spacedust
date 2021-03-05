@@ -26,7 +26,7 @@ import static svenske.spacedust.utils.Utils.get_float_buffer_from;
  */
 public class TextureAtlas {
 
-    //  Maps from atlas rows -> atlas columns -> 2D array of possible texture coordinate buffers.
+    // Maps from atlas rows -> atlas columns -> 2D array of possible texture coordinate buffers.
     private static Map<Integer, Map<Integer, FloatBuffer[][]>> tex_coords_buffers;
 
     /**
@@ -111,7 +111,7 @@ public class TextureAtlas {
      */
     public TextureAtlas(int resource_id, int rows, int cols) {
 
-        //load texture into bitmap
+        // Load texture into bitmap
         InputStream is = GameActivity.app_resources.openRawResource(resource_id);
         Bitmap bmp;
         try {

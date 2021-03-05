@@ -2,8 +2,6 @@ package svenske.spacedust.graphics;
 
 import android.opengl.GLES20;
 
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,12 +9,7 @@ import svenske.spacedust.R;
 import svenske.spacedust.utils.Global;
 import svenske.spacedust.utils.Utils;
 
-import static android.opengl.GLES20.GL_COLOR_ATTACHMENT0;
 import static android.opengl.GLES20.GL_FRAMEBUFFER;
-import static android.opengl.GLES20.GL_NEAREST;
-import static android.opengl.GLES20.GL_RGBA;
-import static android.opengl.GLES20.GL_TEXTURE_2D;
-import static android.opengl.GLES20.GL_UNSIGNED_BYTE;
 import static android.opengl.GLES20.glDeleteFramebuffers;
 import static android.opengl.GLES20.glViewport;
 
