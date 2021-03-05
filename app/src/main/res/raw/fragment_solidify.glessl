@@ -8,15 +8,16 @@
 
 precision mediump float;
 
-// uniforms
+// Uniforms
 uniform vec4 vertex_color;
 uniform sampler2D texture_sampler;
 uniform int blend_mode; // enumerated in same order as Java BlendMode class
 
+// Variables from vertex shader
 varying vec2 tex_coords_f;
 
+// Main function
 void main() {
-
     if (blend_mode == 0) {        // JUST COLOR
         gl_FragColor = vertex_color;
     } else if (blend_mode == 1) { // JUST TEXTURE

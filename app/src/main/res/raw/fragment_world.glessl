@@ -4,32 +4,50 @@
  * Uses: - color
  *       - texture
  *       - blend mode
+ *       - lighting
  */
 
 precision mediump float;
 
-// uniforms
+// Uniforms
 uniform vec4 vertex_color;
 uniform sampler2D texture_sampler;
-uniform int blend_mode; // enumerated in same order as Java BlendMode class
+uniform int blend_mode; // Enumerated in same order as Java BlendMode class
 
+// Variables from vertex shader
 varying vec2 tex_coords_f;
+varying vec2 frag_world_pos;
 
+// Gets the initial unlit color from the texture, color, and blend mode
+vec4 get_unlit_color(sampler2D texture_sampler, vec2 tex_coords_f, int blend_mode, vec4 vertex_color) {
+    if (blend_mode == 0) {        // JUST COLOR
+        return vertex_color;
+    } else if (blend_mode == 1) { // JUST TEXTURE
+        return texture2D(texture_sampler, tex_coords_f);
+    } else if (blend_mode == 2) { // ADDITIVE
+        return vertex_color + texture2D(texture_sampler, tex_coords_f);
+    } else if (blend_mode == 3) { // SUBTRACTIVE
+        return vertex_color - texture2D(texture_sampler, tex_coords_f);
+    } else if (blend_mode == 4) { // MULTIPLICATIVE
+        return vertex_color * texture2D(texture_sampler, tex_coords_f);
+    } else if (blend_mode == 5) { // AVG
+        return (vertex_color + texture2D(texture_sampler, tex_coords_f)) / 2.0f;
+    } else { // ERROR
+        return vec4(1.0f, 0.0f, 1.0f, 1.0f);
+    }
+}
+
+// Applies lighting to an unlit color
+vec4 apply_lighting(vec4 unlit_color) {
+    return unlit_color;
+}
+
+// Main function
 void main() {
 
-    if (blend_mode == 0) {        // JUST COLOR
-        gl_FragColor = vertex_color;
-    } else if (blend_mode == 1) { // JUST TEXTURE
-        gl_FragColor = texture2D(texture_sampler, tex_coords_f);
-    } else if (blend_mode == 2) { // ADDITIVE
-        gl_FragColor = vertex_color + texture2D(texture_sampler, tex_coords_f);
-    } else if (blend_mode == 3) { // SUBTRACTIVE
-        gl_FragColor = vertex_color - texture2D(texture_sampler, tex_coords_f);
-    } else if (blend_mode == 4) { // MULTIPLICATIVE
-        gl_FragColor = vertex_color * texture2D(texture_sampler, tex_coords_f);
-    } else if (blend_mode == 5) { // AVG
-        gl_FragColor = (vertex_color + texture2D(texture_sampler, tex_coords_f)) / 2.0f;
-    } else { // ERROR
-        gl_FragColor = vec4(1.0f, 0.0f, 1.0f, 1.0f);
-    }
+    // Determine the unlit color first
+    vec4 unlit_color = get_unlit_color(texture_sampler, tex_coords_f, blend_mode, vertex_color);
+
+    // Apply lighting and set final color
+    gl_FragColor = apply_lighting(unlit_color);
 }
