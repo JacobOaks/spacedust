@@ -7,12 +7,24 @@
  *       - lighting
  */
 
+// A struct describing a light source
+struct LightSource {
+    vec4 glow;
+    float reach;
+    float intensity;
+    float x;
+    float y;
+};
+
 precision mediump float;
 
-// Uniforms
+// Object Uniforms
 uniform vec4 vertex_color;
 uniform sampler2D texture_sampler;
 uniform int blend_mode; // Enumerated in same order as Java BlendMode class
+
+// Lighting Uniforms
+uniform float ambient_light;
 
 // Variables from vertex shader
 varying vec2 tex_coords_f;
@@ -39,7 +51,43 @@ vec4 get_unlit_color(sampler2D texture_sampler, vec2 tex_coords_f, int blend_mod
 
 // Applies lighting to an unlit color
 vec4 apply_lighting(vec4 unlit_color) {
-    return unlit_color;
+
+    // Apply ambient light
+    vec4 lit_color = unlit_color * ambient_light;
+
+    // Create light
+    LightSource light;
+    light.reach = 5.0;
+    light.intensity = 2.0;
+    light.glow = vec4(1.0, -0.5, -0.5, 1.0);
+    light.x = 2.0;
+    light.y = 2.0;
+
+    // TODO: for more than one light
+
+    float light_dist = distance(vec2(light.x, light.y), frag_world_pos);
+    if (light_dist <= light.reach) { // If this light is close enough to affect this fragment
+
+        // 0.0: center of light's reach; 1.0: just out of reach of light;
+        float farness = light_dist / light.reach;
+
+        // Completely out of reach -> brightness stays the same
+        float out_of_reach_mul = 1.0;
+        // Center of reach -> color gets brighter by factor of light_intensity
+        float center_of_reach_mul = light.intensity + 1.0;
+        // Calculate where along this spectrum we are
+        float brightness_mul = farness * out_of_reach_mul + (1.0 - farness) * center_of_reach_mul;
+        lit_color = lit_color * brightness_mul; // Apply brightness change
+
+        /**
+         * Do glow + 1 because theoretically we shouldn't subtract light. However, to really bring
+         * focus to a specific color, negative rgb components of glow CAN subtract color components.
+         */
+        vec4 center_of_reach_glow_mul = light.glow + 1.0;
+        // Apply glow based on farness similar to how brightness is applied
+        lit_color = lit_color * (farness * vec4(1.0, 1.0, 1.0, 1.0) + (1.0 - farness) * center_of_reach_glow_mul);
+    }
+    return lit_color;
 }
 
 // Main function

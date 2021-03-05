@@ -48,7 +48,7 @@ public class WorldStage implements Stage {
         this.hud = new HUD();
 
         // Create player
-        TextureAtlas ta = new TextureAtlas(R.drawable.texture_sheet, 16, 16);
+        TextureAtlas ta = new TextureAtlas(R.drawable.texture_sheet_2, 16, 16);
         this.player = new Player(ta, 0f, 0f);
         this.world.add_game_object(this.player);
 

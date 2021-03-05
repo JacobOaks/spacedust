@@ -23,6 +23,7 @@ public class World {
     public final float WORLD_HEIGHT = 75f;
 
     // World attributes
+    public final float AMBIENT_LIGHT = 1.1f;
     ShaderProgram sp;
     Camera cam;
 
@@ -69,6 +70,7 @@ public class World {
     // Uses the World's ShaderProgram to render all of the world objects
     public void render() {
         this.sp.bind();
+        this.sp.set_uniform("ambient_light", this.AMBIENT_LIGHT);
         this.cam.set_uniforms(this.sp);
         this.background.render(this.sp); // Render background first obviously
         for (GameObject go : this.world_objects) go.render(this.sp);
