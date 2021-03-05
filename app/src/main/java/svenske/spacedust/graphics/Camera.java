@@ -75,4 +75,21 @@ public class Camera {
             this.max_c_y = this.max_y - (view_height / 2);
         }
     }
+
+    // Return if the given position is out of the camera's view (scaled by the given scalar)
+    public boolean out_of_view(float x, float y, float mul) {
+
+        // Calculate the current view times the given scalar
+        float view_width = 2f * mul/ this.zoom;
+        float view_height = 2f * mul / this.zoom;
+        float ar = (float)Global.VIEWPORT_WIDTH / (float)Global.VIEWPORT_HEIGHT;
+        if (ar > 1f) view_width *= ar;
+        else view_height /= ar;
+
+        // Determine if given position is outside of the calculated view
+        if (x < this.x - view_width / 2 || x > this.x + view_width / 2) {
+            return y < this.y - view_height / 2 || y > this.y + view_height / 2;
+        }
+        return false;
+    }
 }

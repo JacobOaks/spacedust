@@ -222,4 +222,12 @@ public class Sprite {
 
     // Return the Sprite's size
     public float[] get_size() { return new float[] { this.width, this.height }; }
+
+    // Modify the Sprite's color
+    public void set_color(float[] color) {
+        this.color = color;
+        if (this.color != null && this.color.length != 4)
+            throw new RuntimeException("[spdt/sprite]: " +
+                    " invalid color array length " + this.color.length);
+    }
 }

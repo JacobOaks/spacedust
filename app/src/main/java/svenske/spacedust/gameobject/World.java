@@ -1,5 +1,6 @@
 package svenske.spacedust.gameobject;
 
+import android.util.Log;
 import android.view.MotionEvent;
 
 import java.util.ArrayList;
@@ -18,22 +19,22 @@ import svenske.spacedust.utils.Node;
 // Encapsulation for all that is to be considered part of the World (as opposed to the HUD).
 public class World {
 
-    // Width and height of the world
+    // Area settings
     // TODO (post-prototype): Grab from appropriate "zone"
     public final float WORLD_WIDTH = 100f;
     public final float WORLD_HEIGHT = 75f;
+    public final float AMBIENT_LIGHT = 0.85f;
+    public final int MAX_LIGHTS = 64;
 
     // World attributes
-    public final float AMBIENT_LIGHT = 0.85f;
-    ShaderProgram sp;
-    Camera cam;
+    private ShaderProgram sp;
+    private Camera cam;
 
     // World objects
-    GameObject background;
-    List<GameObject> world_objects;
-
-    // TODO: Move to objects via an interface LightEmitter
-    LightSource ls = new LightSource(new float[] { 0.1f, 0.1f, -0.1f }, 5f, 4f, new float[] { 2.5f, 5.5f, 3f });
+    private GameObject background;
+    private List<GameObject> world_objects;
+    private List<Bullet> bullets;                  // Kept separate so can be dynamically removed
+    private float bullet_management_cooldown = 2f; // Bullets dynamically removed every so often
 
     // Constructs the world with the given continuous data from a previous destruction of context.
     public World(Node continuous_data) {
@@ -44,6 +45,7 @@ public class World {
         this.cam.set_bounds(-WORLD_WIDTH / 2f, WORLD_WIDTH / 2f,
                 -WORLD_HEIGHT / 2f, WORLD_HEIGHT / 2f);
         this.world_objects = new ArrayList<>();
+        this.bullets = new ArrayList<>();
 
         // Create background
         TextureAtlas background_atlas = new TextureAtlas(R.drawable.background, 1, 1);
@@ -53,7 +55,7 @@ public class World {
         this.background.set_scale(WORLD_WIDTH, WORLD_HEIGHT);
 
         // TODO: Re-instantiate GameObjects
-        if (continuous_data !=  null) { }
+        if (continuous_data !=  null) {}
     }
 
     /**
@@ -67,23 +69,80 @@ public class World {
 
     // Updates all of the world objects.
     public void update(float dt) {
+
+        // Update world objects
         this.background.update(dt);
-        this.ls.update(dt);
+        for (Bullet b: this.bullets) b.update(dt);
         for (GameObject go : this.world_objects) go.update(dt);
+
+        // Manage bullets every so often
+        this.bullet_management_cooldown -= dt;
+        if (this.bullet_management_cooldown <= 0f) {
+            this.bullet_management_cooldown = 2f;
+            this.manage_bullets();
+        }
+    }
+
+    // Dynamically manage bullets in the world
+    private void manage_bullets() {
+
+        // Remove bullets out of view
+        List<Bullet> to_remove = new ArrayList<>();
+        for (Bullet b : this.bullets) {
+            float[] pos = b.get_pos();
+            if (cam.out_of_view(pos[0], pos[1], 1.5f))
+                to_remove.add(b);
+        }
+        if (to_remove.size() > 0) this.bullets.removeAll(to_remove);
     }
 
     // Uses the World's ShaderProgram to render all of the world objects
     public void render() {
         this.sp.bind();
+        this.set_lighting_uniforms();    // Set lighting uniforms
+        this.cam.set_uniforms(this.sp);  // Set camera uniforms
+        this.background.render(this.sp); // Render background first obviously
+        for (Bullet b : this.bullets) b.render(this.sp); // Then render bullets
+        for (GameObject go : this.world_objects) go.render(this.sp); // The render other objects
+        ShaderProgram.unbind_any_shader_program();
+    }
+
+    // Sets lighting uniforms in the shader program pre-render
+    private void set_lighting_uniforms() {
+
+        // Set lighting uniforms from generic GameObjects
         this.sp.set_uniform("ambient_light", this.AMBIENT_LIGHT);
         this.sp.set_uniform("max_brightness", 10f);
-        this.sp.set_light_uniform("lights", 0, ls, 0f, 0f);
-        // this.sp.set_light_uniform("lights", 1, ls, 3f, 0f);
-        // this.sp.set_light_uniform("lights", 2, ls, 1.5f, 3f);
-        this.cam.set_uniforms(this.sp);
-        this.background.render(this.sp); // Render background first obviously
-        for (GameObject go : this.world_objects) go.render(this.sp);
-        ShaderProgram.unbind_any_shader_program();
+        int i = 0;
+        for (GameObject go : this.world_objects) {
+            if (go instanceof LightEmitter) {
+                if (i >= this.MAX_LIGHTS)
+                    Log.e("[spdt/world]",
+                            "Maximum light count exceeded! Ignoring remaining lights.");
+                else {
+                    float[] pos = go.get_pos();
+                    this.sp.set_light_uniform("lights", i, ((LightEmitter) go).get_light(),
+                            pos[0], pos[1]);
+                    i++;
+                }
+            }
+        }
+
+        // Set bullet lighting uniforms
+        for (Bullet b : this.bullets) {
+            if (i >= this.MAX_LIGHTS)
+                Log.e("[spdt/world]",
+                        "Maximum light count exceeded! Ignoring remaining lights.");
+            else {
+                float[] pos = b.get_pos();
+                this.sp.set_light_uniform("lights", i, b.get_light(), pos[0], pos[1]);
+                i++;
+            }
+        }
+
+        // Fill remaining light slots with null
+        for (int j = i; j < MAX_LIGHTS; j++)
+            this.sp.set_light_uniform("lights", j, null, -1, -1);
     }
 
     /**
@@ -112,4 +171,7 @@ public class World {
         // TODO: Save GameObjects
         return null;
     }
+
+    // Return a reference to the bullets list to pass to bullet-creating objects
+    public List<Bullet> get_bullets() { return this.bullets; }
 }

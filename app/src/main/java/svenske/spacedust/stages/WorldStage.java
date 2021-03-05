@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import svenske.spacedust.R;
+import svenske.spacedust.gameobject.Bar;
 import svenske.spacedust.gameobject.GameObject;
 import svenske.spacedust.gameobject.HUD;
 import svenske.spacedust.gameobject.JoyStick;
@@ -44,12 +45,18 @@ public class WorldStage implements Stage {
     public void init(Node previous_continuous_data) {
 
         this.world = new World(previous_continuous_data);
-        this.world.get_camera().set_zoom(0.33f);
+        this.world.get_camera().set_zoom(0.25f);
         this.hud = new HUD();
+
+        // Create player health bar
+        Bar player_hp_bar = new Bar(new float[] { 0f, 1f, 0f, 0.5f}, new float[] { 1f, 0f, 0f, 0.8f},
+                new float[] { 0.5f, 0.5f, 0.5f, 0.3f }, 1f, 0.1f, 0f, 0f);
+        this.hud.add_object(player_hp_bar,
+                null, HUD.RelativePlacement.BELOW, HUD.Alignment.RIGHT, 0.1f);
 
         // Create player
         TextureAtlas ta = new TextureAtlas(R.drawable.texture_sheet_2, 16, 16);
-        this.player = new Player(ta, 0f, 0f);
+        this.player = new Player(ta, this.world.get_bullets(), player_hp_bar, 0f, 0f);
         this.world.add_game_object(this.player);
 
         // Create movement joystick

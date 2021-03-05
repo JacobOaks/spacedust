@@ -92,13 +92,21 @@ public class ShaderProgram {
         GLES20.glUniform1i(this.get_uniform_location(name), value);
     }
 
-    // Sets the uniform with the given name to the given LightSource.
+    /**
+     * Sets the light array uniform with the given name and at the given index to the given
+     * LightSource.
+     * @param ls if null, the light at that index will be "nullified" in the shader program.
+     */
     public void set_light_uniform(String array_name, int i, LightSource ls, float x, float y) {
-        this.set_uniform(array_name + "[" + i + "].reach", ls.get_reach());
-        this.set_uniform(array_name + "[" + i + "].intensity", ls.get_intensity());
-        this.set_uniform(array_name + "[" + i + "].glow", ls.get_glow());
-        this.set_uniform(array_name + "[" + i + "].x", x);
-        this.set_uniform(array_name + "[" + i + "].y", y);
+        if (ls == null)
+            this.set_uniform(array_name + "[" + i + "].reach", -1f);
+        else {
+            this.set_uniform(array_name + "[" + i + "].reach", ls.get_reach());
+            this.set_uniform(array_name + "[" + i + "].intensity", ls.get_intensity());
+            this.set_uniform(array_name + "[" + i + "].glow", ls.get_glow());
+            this.set_uniform(array_name + "[" + i + "].x", x);
+            this.set_uniform(array_name + "[" + i + "].y", y);
+        }
     }
 
     // Only one shader program can be bound at a time. This method unbinds any/all.

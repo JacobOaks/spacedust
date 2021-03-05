@@ -40,4 +40,9 @@ public class LightSource {
     public float get_reach() { return this.reach; }
     public float get_intensity() { return this.intensity; }
     public float[] get_glow() { return this.glow; }
+
+    // Mutators
+    public void set_reach(float reach) { this.reach = reach; }
+    public void set_intensity(float intensity) { this.intensity = intensity; }
+    public void set_glow(float[] glow) { this.glow = glow; }
 }

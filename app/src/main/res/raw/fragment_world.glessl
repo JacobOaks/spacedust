@@ -24,7 +24,7 @@ uniform sampler2D texture_sampler;
 uniform int blend_mode; // Enumerated in same order as Java BlendMode class
 
 // Lighting Uniforms/Attributes
-const int MAX_LIGHTS = 5;
+const int MAX_LIGHTS = 64;
 uniform float ambient_light;
 uniform float max_brightness;
 uniform LightSource lights[MAX_LIGHTS];

@@ -9,6 +9,13 @@ import java.util.Map;
  */
 public class AnimatedSprite extends Sprite {
 
+    // A simple callback to notify of a frame change
+    public interface FrameChangeCallback { void on_frame_change(int new_frame); }
+    private FrameChangeCallback fcc;
+
+    // Assign a frame change callback
+    public void set_frame_change_callback(FrameChangeCallback fcc) { this.fcc = fcc; }
+
     /**
      * A map from strings (animation) names to actual Animation info.
      * e.g., a ship could have "idle", "shooting", etc. different animations.
@@ -82,6 +89,9 @@ public class AnimatedSprite extends Sprite {
         // Update texture coordinates buffer
         this.texture_coordinates = TextureAtlas.get_tex_coords_buffer(
                 this.atlas, atlas_row, atlas_col);
+
+        // Call callback if there is one
+        if (this.fcc != null) this.fcc.on_frame_change(this.current_frame);
     }
 
     /**
