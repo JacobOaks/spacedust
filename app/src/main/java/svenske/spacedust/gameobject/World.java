@@ -102,8 +102,8 @@ public class World {
         this.set_lighting_uniforms();    // Set lighting uniforms
         this.cam.set_uniforms(this.sp);  // Set camera uniforms
         this.background.render(this.sp); // Render background first obviously
+        for (GameObject go : this.world_objects) go.render(this.sp); // Then render other objects
         for (Bullet b : this.bullets) b.render(this.sp); // Then render bullets
-        for (GameObject go : this.world_objects) go.render(this.sp); // The render other objects
         ShaderProgram.unbind_any_shader_program();
     }
 

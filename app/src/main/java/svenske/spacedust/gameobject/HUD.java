@@ -11,7 +11,6 @@ import svenske.spacedust.R;
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
 import svenske.spacedust.utils.Global;
-import svenske.spacedust.utils.Node;
 
 /**
  * Encapsulation for all that is to be considered part of the heads-up display rendered over top of

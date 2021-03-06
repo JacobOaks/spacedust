@@ -16,11 +16,7 @@ import svenske.spacedust.graphics.TextureAtlas;
 public class Player extends GameObject implements JoyStick.JoystickReceiver, LightEmitter,
         AnimatedSprite.FrameChangeCallback {
 
-    /**
-     * Joystick data. Important to keep track of because the idea is to point the ship in the
-     * direction it is shooting, unless it is not shooting, then to point it in the direction it
-     * is accelerating.
-     */
+    // State data
     private float acceleration_angle;     // The angle of the left joystick
     private boolean accelerating = false; // Is the left joystick active?
     private boolean shooting = false;     // Is the right joystick active?
@@ -33,13 +29,11 @@ public class Player extends GameObject implements JoyStick.JoystickReceiver, Lig
     // Light info
     private LightSource ls;
     private int sprite_light_frame = 6;
-    private final float[] default_light_glow = new float[] { 0f, 0f, 0f };
-    private final float[] sprite_light_glow = new float[] { 0.12f, 0.12f, -0.12f };
 
     // Shooting info
     private float shooting_accuracy = 0.97f; // 0 - bullet dir random; 1 - bullet dir perfect
     private float shooting_cooldown = 0.28f; // Cool down between shots (s)
-    private float shooting_timer    = 0f;    // Time left before another shot can be fired
+    private float shooting_timer    = 0f;    // Time left before another shot can be fired (s)
     private float bullet_speed      = 16f;   // Bullet speed (units/s)
     private List<Bullet> bullets;            // A reference to the World's list of bullets to add to
 
@@ -62,7 +56,7 @@ public class Player extends GameObject implements JoyStick.JoystickReceiver, Lig
     public Player(TextureAtlas atlas, List<Bullet> bullets, Bar hp_bar, float x, float y) {
         super(null, x, y);
         this.setup_sprite(atlas); // Setup animations and sprite
-        this.ls = new LightSource(default_light_glow, 5f, 4f, null);
+        this.ls = new LightSource(new float[] { 0f, 0f, 0f }, 5f, 4f, null);
         this.bullets = bullets;
         this.hp_bar = hp_bar;
         this.set_health(this.max_health);
@@ -70,50 +64,98 @@ public class Player extends GameObject implements JoyStick.JoystickReceiver, Lig
 
     // Sets up the player's animations and sprite
     private void setup_sprite(TextureAtlas atlas) {
+        Map<String, Animation> anims = new HashMap<>();
 
         // Idle animation
         Animation idle = new Animation(0.1f, 12, new int[] { 0 },
                 new int[] { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2 }, new float[][] { null },
                 new BlendMode[] { BlendMode.JUST_TEXTURE });
-        Map<String, Animation> anims = new HashMap<>();
         anims.put("idle", idle);
+
+        // Shooting animation
+        Animation shooting = new Animation(this.shooting_cooldown / 6f, 7,
+                new int[] { 0 }, new int[] { 3, 0, 0, 0, 0, 0, 0 }, new float[][] { null },
+                new BlendMode[] { BlendMode.JUST_TEXTURE });
+        anims.put("shooting", shooting);
+
+        // Accelerating animation
+        Animation accelerating = new Animation(0.1f, 12, new int[] { 1 },
+                new int[] { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2 }, new float[][] { null },
+                new BlendMode[] { BlendMode.JUST_TEXTURE });
+        anims.put("accelerating", accelerating);
+
+        // Shooting and accelerating animation
+        Animation shooting_and_accelerating = new Animation(this.shooting_cooldown / 6f, 6,
+                new int[] { 1 }, new int[] { 3, 0, 0, 0, 0, 0 }, new float[][] { null },
+                new BlendMode[] { BlendMode.JUST_TEXTURE });
+        anims.put("shooting_and_accelerating", shooting_and_accelerating);
+
+        // Create sprite
         this.sprite = new AnimatedSprite(atlas, anims, "idle",
                 null, null);
         ((AnimatedSprite)this.sprite).set_frame_change_callback(this);
     }
 
-    // Magnifies the player's light on specific frames
+    // Responds to frame changes by appropriately setting light information, and generating bullets
     @Override
     public void on_frame_change(int frame) {
-        if ((frame + 1) % this.sprite_light_frame == 0) { // If lights blinking on sprite
-            this.ls.set_intensity(5.3f);
-            this.ls.set_reach(4.2f);
-            this.ls.set_glow(this.sprite_light_glow);
-        } else { // If no lights blinking on sprite
-            this.ls.set_intensity(5f);
-            this.ls.set_reach(4f);
-            this.ls.set_glow(this.default_light_glow);
+
+        // Baseline lighting settings
+        float reach = 3f;
+        float intensity = 3f;
+        float[] glow = new float[] { 0f, 0f, 0f };
+
+        // If a shot is fired, emity a powerful orange light
+        if (this.shooting && frame == 1) {
+            reach += 0.5f;
+            intensity += 0.5f;
+            glow[0] += 0.7f;
+            glow[2] -= 0.2f;
+
+        // If the little flashing lights come on, add a little yellow light
+        } else if (!this.shooting && (frame + 1) % this.sprite_light_frame == 0) {
+            reach += 0.1f;
+            intensity += 0.1f;
+            glow[0] += 0.2f;
+            glow[1] += 0.2f;
+            glow[2] -= 0.2f;
         }
+
+        // If accelerating, add some orange light from the engines
+        if (this.accelerating) {
+            reach += 0.1f;
+            intensity += 0.1f;
+            glow[0] += 0.2f;
+        }
+
+        // Set final light information
+        this.ls.set_reach(reach);
+        this.ls.set_glow(glow);
+        this.ls.set_intensity(intensity);
     }
 
-    // Applies acceleration and calls GameObject's update
+    /**
+     * Updates the player:
+     * - update the light source
+     * - update velocity and position
+     * - update the animation
+     * - update shooting timer
+     * - update the health regeneration counter, or regenerate health if cool-down over
+     */
     @Override
     void update(float dt) {
-
-        // Update shooting
-        this.shooting_timer -= dt;
-        if (this.shooting && this.shooting_timer <= 0f) {
-            this.shooting_timer += this.shooting_cooldown;
-            this.generate_bullet();
-        } else if (this.shooting_timer < 0f) this.shooting_timer = 0f;
 
         // Update LightSource
         this.ls.update(dt);
 
-        // Update velocity and position
+        // Update velocity, position, sprite
         this.vx = Math.max(-this.max_v, Math.min(this.vx + this.ax, this.max_v));
         this.vy = Math.max(-this.max_v, Math.min(this.vy + this.ay, this.max_v));
         super.update(dt);
+
+        // Update shooting timer
+        if (this.shooting) this.shooting_timer -= dt;
+        if (this.shooting && this.shooting_timer <= 0f) this.generate_bullet();
 
         // Update health
         if (this.health_regen_counter > 0f) this.health_regen_counter -= dt;
@@ -122,11 +164,17 @@ public class Player extends GameObject implements JoyStick.JoystickReceiver, Lig
 
     // Generates a new bullet shot from the player
     private void generate_bullet() {
-        float max_bullet_dir_offset = (float)Math.PI *  (1f - this.shooting_accuracy);
-        float bullet_dir_offset = (float)Math.random() * 2 * max_bullet_dir_offset - max_bullet_dir_offset;
-        this.bullets.add(new Bullet(new float[] { 0f, 0f, 1f, 1f }, this.x, this.y,
-                this.rot + bullet_dir_offset, this.bullet_speed));
-        this.deal_damage(0.4f);
+
+        // Figure out an accuracy offset
+        float max_offset = (float)Math.PI *  (1f - this.shooting_accuracy);
+        float offset = (float)Math.random() * 2 * max_offset - max_offset;
+
+        // Create bullet
+        this.bullets.add(new Bullet(new float[] { 0.5f, 0.5f, 0.5f, 1f }, this.x, this.y,
+                this.rot + offset, this.bullet_speed));
+        this.deal_damage(0.4f); // TODO: remove
+        this.shooting_timer += this.shooting_cooldown; // Reset cool-down
+        ((AnimatedSprite)this.sprite).switch_frames(0);
     }
 
     // Sets the Player's health to the given health
@@ -153,17 +201,23 @@ public class Player extends GameObject implements JoyStick.JoystickReceiver, Lig
 
     /**
      * Responds to JoyStick input:
-     * - movement stick: sets the appropriate acceleration angle and magnitudes.
-     * - rotation: sets the appropriate rotation of the ship so it faces where it shoots.
+     * - Movement stick: accelerate in appropriate direction and face shit appropriate direction if
+     *   not also shooting. Update state to ensure smooth animation transitions
+     * - Shooting stick: face the ship in the direction of shooting and update the state to ensure
+     *   smooth animation transition
      */
     @Override
     public void receive_dir_vec(String id, float x, float y, float magnitude) {
 
         // Movement stick
         if (id.equals("movement")) {
-            this.accelerating = true;
+            this.set_state(true, this.shooting);
+
+            // Set rotation angle to acceleration angle if not shooting
             this.acceleration_angle = (float)Math.atan2(y, x) - (float)(Math.PI / 2f);
             if (!this.shooting) this.rot = this.acceleration_angle;
+
+            // Calculate both components of acceleration
             this.ax = this.max_a * magnitude *
                     (float)Math.cos(this.acceleration_angle + (float)(Math.PI / 2f));
             this.ay = this.max_a * magnitude *
@@ -171,26 +225,52 @@ public class Player extends GameObject implements JoyStick.JoystickReceiver, Lig
 
         // Shooting stick
         } else if (id.equals("shooting")) {
-            this.shooting = true;
             this.rot = (float)Math.atan2(y, x) - (float)(Math.PI / 2f);
+            this.set_state(this.accelerating, true);
         }
     }
 
-    // Responds to JoyStick input ending by resetting state
+    // Responds to JoyStick input ending by updating player state
     @Override
     public void input_ended(String id) {
 
         // Movement stick lifted
-        if (id.equals("movement")) { // No longer accelerating
-            this.accelerating = false;
-            this.ax = this.ay = 0f;
-        }
+        if (id.equals("movement")) // No longer accelerating
+            this.set_state(false, this.shooting);
 
         // Shooting stick lifted
-        else if (id.equals("shooting")) { // No longer shooting, set rotation to acceleration angle
-            this.shooting = false;
-            if (this.accelerating) this.rot = this.acceleration_angle;
-        }
+        else if (id.equals("shooting")) // No longer shooting
+            this.set_state(this.accelerating, false);
+    }
+
+    /**
+     * If the given state differs from the current player state, this method will ensure a smooth/
+     * correct transition between the two states in terms of animation and other properties
+     */
+    private void set_state(boolean accelerating, boolean shooting) {
+
+        // Ignore if state isn't changing
+        if (accelerating == this.accelerating && shooting == this.shooting) return;
+
+        // What's the correct animation given the new state?
+        String correct_animation = "idle";
+        if (accelerating && shooting)  correct_animation = "shooting_and_accelerating";
+        else if (accelerating) correct_animation = "accelerating";
+        else if (shooting) correct_animation = "shooting";
+
+        // Change animation
+        ((AnimatedSprite)this.sprite).change_animation(correct_animation, true);
+
+        // Revert to acceleration angle if accelerating while shooting stops
+        if (this.shooting && !shooting && this.accelerating)
+            this.rot = this.acceleration_angle;
+
+        // Set acceleration to 0 if acceleration has stopped
+        if (this.accelerating && !accelerating) this.ax = this.ay = 0;
+
+        // Update state flags
+        this.accelerating = accelerating;
+        this.shooting = shooting;
     }
 
     // Return the Player's LightSource

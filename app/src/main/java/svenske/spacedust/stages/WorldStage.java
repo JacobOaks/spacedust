@@ -4,9 +4,7 @@ import android.opengl.GLES20;
 import android.view.MotionEvent;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import svenske.spacedust.R;
 import svenske.spacedust.gameobject.Bar;
@@ -15,13 +13,9 @@ import svenske.spacedust.gameobject.HUD;
 import svenske.spacedust.gameobject.JoyStick;
 import svenske.spacedust.gameobject.Player;
 import svenske.spacedust.gameobject.World;
-import svenske.spacedust.graphics.AnimatedSprite;
-import svenske.spacedust.graphics.AnimatedTextSprite;
-import svenske.spacedust.graphics.Animation;
 import svenske.spacedust.graphics.BlendMode;
 import svenske.spacedust.graphics.Font;
 import svenske.spacedust.graphics.Sprite;
-import svenske.spacedust.graphics.TextAnimation;
 import svenske.spacedust.graphics.TextSprite;
 import svenske.spacedust.graphics.TextureAtlas;
 import svenske.spacedust.utils.Global;
@@ -71,7 +65,7 @@ public class WorldStage implements Stage {
                 0.1f);
 
         // Create player
-        TextureAtlas ta = new TextureAtlas(R.drawable.texture_sheet_2, 16, 16);
+        TextureAtlas ta = new TextureAtlas(R.drawable.texture_sheet, 16, 16);
         this.player = new Player(ta, this.world.get_bullets(), this.player_hp_bar, 0f, 0f);
         this.world.add_game_object(this.player);
     }
