@@ -8,6 +8,7 @@ import java.util.List;
 
 import svenske.spacedust.R;
 import svenske.spacedust.gameobject.Bar;
+import svenske.spacedust.gameobject.Enemy;
 import svenske.spacedust.gameobject.GameObject;
 import svenske.spacedust.gameobject.HUD;
 import svenske.spacedust.gameobject.JoyStick;
@@ -45,6 +46,7 @@ public class WorldStage implements Stage {
         this.world.get_camera().set_zoom(0.25f);
         this.hud = new HUD();
 
+        // TODO: need to reposition on resize
         // Create objects
         this.create_player();
         this.create_joysticks();
@@ -66,8 +68,19 @@ public class WorldStage implements Stage {
 
         // Create player
         TextureAtlas ta = new TextureAtlas(R.drawable.texture_sheet, 16, 16);
-        this.player = new Player(ta, this.world.get_bullets(), this.player_hp_bar, 0f, 0f);
+        this.player = new Player(ta, this.world.get_bullets(),0f, 0f, this.player_hp_bar);
         this.world.add_game_object(this.player);
+
+        // Create dummy enemy
+        Enemy e = new Enemy(ta, this.world.get_bullets(), 2f, 2f, true);
+        e.set_target(this.player);
+        this.world.add_game_object(e);
+        e = new Enemy(ta, this.world.get_bullets(), 3f, 6f, true);
+        e.set_target(this.player);
+        this.world.add_game_object(e);
+        e = new Enemy(ta, this.world.get_bullets(), -2f, -2f, true);
+        e.set_target(this.player);
+        this.world.add_game_object(e);
     }
 
     // Creates the JoySticks

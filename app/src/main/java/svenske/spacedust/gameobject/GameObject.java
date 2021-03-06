@@ -64,6 +64,12 @@ public class GameObject {
         this.sy = sy;
     }
 
+    // Updates the GameObject's velocity
+    public void set_velocity(float vx, float vy) {
+        this.vx = vx;
+        this.vy = vy;
+    }
+
     // Return the GameObject's current position
     public float[] get_pos() { return new float[] { this.x, this.y }; }
 
