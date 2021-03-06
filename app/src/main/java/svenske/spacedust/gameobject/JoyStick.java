@@ -7,7 +7,6 @@ import java.util.List;
 
 import svenske.spacedust.R;
 import svenske.spacedust.graphics.BlendMode;
-import svenske.spacedust.graphics.Camera;
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
 import svenske.spacedust.graphics.TextureAtlas;

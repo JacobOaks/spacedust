@@ -1,7 +1,6 @@
 package svenske.spacedust.graphics;
 
 import android.opengl.GLES20;
-import android.util.Log;
 
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;

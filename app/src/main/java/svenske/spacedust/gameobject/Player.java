@@ -1,45 +1,40 @@
 package svenske.spacedust.gameobject;
 
-import java.util.List;
-
 import svenske.spacedust.graphics.AnimatedSprite;
 import svenske.spacedust.graphics.TextureAtlas;
 
 /**
- * Players are an extension of Ships that use Joystick input to be controlled.
- *
- * Players count accelerating as "moving", and the movement JoyStick directly controls acceleration,
- * not velocity.
+ * A player is a ship that:
+ * - is controlled by JoySticks
+ * - counts movement as acceleration rather than velocity
  */
 public class Player extends Ship implements JoyStick.JoystickReceiver {
 
     // Acceleration info
-    private float ax, ay;
-    private float acceleration_angle;
+    private float ax, ay;              // Current player acceleration
+    private float acceleration_angle;  // Current angle of acceleration (angle of left joystick)
     private final float max_a = 0.13f; // Maximum acceleration in one axis (unit/s^2)
 
-    // Additional shooting info
-    private boolean shooting;
-    private float shooting_cooldown = 0.28f; // Cool down between shots (s)
-    private float shooting_timer    = 0f;    // Time left before another shot can be fired (s)
-
     // Other info
-    private Bar hud_hp_bar;
+    private boolean shooting; // Whether player is currently shooting (right joystick in use)
+    private Bar hud_hp_bar;   // Reference to an HP bar on the HUD to update
 
     /**
      * Constructs the player
-     *
      * @param atlas the atlas containing the ship textures
+     * @param x the starting x for the player
+     * @param y the starting y for the player
      * @param hp_bar a health bar (ideally displayed on the HUD) for the player to update
+     * @param world a reference to the world to use as an object creator/deleter
      */
-    public Player(TextureAtlas atlas, float x, float y, Bar hp_bar,
-                  ObjectCreator obj_creator, ObjectDeleter obj_deleter) {
-        super(atlas,0, x, y, false, obj_creator, obj_deleter);
-        this.hud_hp_bar = hp_bar;
-        this.set_health(this.get_max_health());
-        this.max_v = 6.0f;
+    public Player(TextureAtlas atlas, float x, float y, Bar hp_bar, World world) {
+        super(atlas,0, x, y, false, world, world);
+        this.hud_hp_bar = hp_bar;               // Use HUD health bar instead of overhead one
+        this.set_health(this.get_max_health()); // Set health to max_health
+        this.max_v = 6.0f;                      // Players slightly faster than enemies
     }
 
+    // Responds to joystick input by updating movement or shooting activity
     @Override
     public void receive_dir_vec(String id, float x, float y, float magnitude) {
 
@@ -63,11 +58,12 @@ public class Player extends Ship implements JoyStick.JoystickReceiver {
 
         // Shooting stick
         } else if (id.equals("shooting")) {
-            this.rot = (float)Math.atan2(y, x) - (float)(Math.PI / 2f);
-            this.shooting = true;
+            this.rot = (float)Math.atan2(y, x) - (float)(Math.PI / 2f); // Face shooting direction
+            this.shooting = true;                                       // Flag that shooting now
         }
     }
 
+    // Updates the player
     @Override
     void update(float dt) {
 
@@ -76,14 +72,11 @@ public class Player extends Ship implements JoyStick.JoystickReceiver {
         this.vy = Math.max(-this.max_v, Math.min(this.vy + this.ay, this.max_v));
         super.update(dt);
 
-        // Update shooting timer
-        if (this.shooting) this.shooting_timer -= dt;
-        if (this.shooting && this.shooting_timer <= 0f) {
-            this.shoot(false);
-            this.shooting_timer += this.shooting_cooldown;
-        }
+        // Attempt to shoot if shooting
+        if (this.shooting) this.shoot(false);
     }
 
+    // Sets the player's health and updates the HUD health bar's fill
     @Override
     public void set_health(float health) {
         super.set_health(health);
@@ -91,6 +84,7 @@ public class Player extends Ship implements JoyStick.JoystickReceiver {
             this.hud_hp_bar.set_fill(this.get_health() / this.get_max_health());
     }
 
+    // Sets velocity without messing with moving flags (which relate to acceleration for the player)
     @Override
     public void set_velocity(float vx, float vy) {
         super.set_velocity(
@@ -98,6 +92,7 @@ public class Player extends Ship implements JoyStick.JoystickReceiver {
                 Math.max(Math.min(vy, this.max_v), -this.max_v));
     }
 
+    // Stops the player completely, including acceleration
     @Override
     public void stop() {
         this.ax = this.ay = 0f;

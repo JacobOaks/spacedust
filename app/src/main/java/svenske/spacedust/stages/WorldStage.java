@@ -22,6 +22,8 @@ import svenske.spacedust.graphics.TextureAtlas;
 import svenske.spacedust.utils.Global;
 import svenske.spacedust.utils.Node;
 
+import static svenske.spacedust.gameobject.HUD.Alignment.LEFT;
+
 /**
  * This stage represents the actual game world. The WorldStage basically consists of a World and a
  * HUD, updated and rendered separately.
@@ -29,13 +31,16 @@ import svenske.spacedust.utils.Node;
 public class WorldStage implements Stage {
 
     // WorldStage attributes
-    World world;
-    HUD hud;
+    public static TextureAtlas ship_ta;  // TextureAtlas containing ship textures
+    World world;                         // The world
+    HUD hud;                             // The HUD
 
     // Important GameObjects
-    Player player;
-    GameObject FPS_text;
-    Bar player_hp_bar;
+    Player player;                       // Reference to the game's player
+    Bar player_hp_bar;                   // Player's health bar on the HUD
+    GameObject FPS_text;                 // FPS text on the HUD
+    public static GameObject enemy_text; // Text displaying how many enemies there are on HUD
+    public static GameObject kills_text; // Text displaying how many kills there have been on HUD
 
     // Create's the World and the HUD of the WorldStage as well as its starting GameObjects.
     @Override
@@ -63,21 +68,13 @@ public class WorldStage implements Stage {
                 null, HUD.RelativePlacement.BELOW,
                 // If landscape, place in upper-right corner. If portrait, place in upper-left
                 ((float) Global.VIEWPORT_WIDTH / (float) Global.VIEWPORT_HEIGHT) >= 1.0f ?
-                        HUD.Alignment.LEFT : HUD.Alignment.RIGHT,
+                        LEFT : HUD.Alignment.RIGHT,
                 0.1f);
 
         // Create player
-        TextureAtlas ta = new TextureAtlas(R.drawable.texture_sheet, 16, 16);
-        this.player = new Player(ta,0f, 0f, this.player_hp_bar, this.world, this.world);
+        WorldStage.ship_ta = new TextureAtlas(R.drawable.texture_sheet, 16, 16);
+        this.player = new Player(WorldStage.ship_ta,0f, 0f, this.player_hp_bar, this.world);
         this.world.add_game_object(this.player);
-
-        // Create enemy
-        Enemy e = new Enemy(ta, 5f, 5f, true, this.world, this.world);
-        e.set_target(this.player);
-        this.world.add_game_object(e);
-        e = new Enemy(ta, 3f, 9f, true, this.world, this.world);
-        e.set_target(this.player);
-        this.world.add_game_object(e);
     }
 
     // Creates the JoySticks
@@ -88,7 +85,7 @@ public class WorldStage implements Stage {
                 0f, 0f, 0.25f, player);
         movement_stick.set_scale(0.6f, 0.6f);
         this.hud.add_object(movement_stick,
-                null, HUD.RelativePlacement.ABOVE, HUD.Alignment.LEFT, 0.1f);
+                null, HUD.RelativePlacement.ABOVE, LEFT, 0.1f);
 
         // Create shooting joystick
         JoyStick rotation_stick = new JoyStick("shooting",
@@ -113,7 +110,7 @@ public class WorldStage implements Stage {
                 // If landscape, place on top-left screen edge. If portrait, place below HP bar
                 ((float) Global.VIEWPORT_WIDTH / (float) Global.VIEWPORT_HEIGHT) >= 1.0f ?
                         this.player_hp_bar : null,
-                HUD.RelativePlacement.BELOW, HUD.Alignment.LEFT, 0.05f);
+                HUD.RelativePlacement.BELOW, LEFT, 0.05f);
 
         // Create version info
         Sprite version_sprite = new TextSprite(font, new float[] { 1f, 1f, 1f, 1f },
@@ -123,7 +120,7 @@ public class WorldStage implements Stage {
         GameObject version_text = new GameObject(version_sprite, 0f, 0f);
         version_text.set_scale(0.05f, 0.05f);
         this.hud.add_object(version_text,
-                title, HUD.RelativePlacement.BELOW, HUD.Alignment.LEFT, 0.05f);
+                title, HUD.RelativePlacement.BELOW, LEFT, 0.03f);
 
         // Create FPS text
         Sprite fps_text_sprite = new TextSprite(font, new float[] { 1f, 1f, 1f, 0.6f },
@@ -131,8 +128,23 @@ public class WorldStage implements Stage {
         this.FPS_text = new GameObject(fps_text_sprite, 0f,0f);
         this.FPS_text.set_scale(0.07f, 0.07f);
         this.hud.add_object(FPS_text,
-                version_text, HUD.RelativePlacement.BELOW, HUD.Alignment.LEFT, 0.05f);
+                version_text, HUD.RelativePlacement.BELOW, LEFT, 0.05f);
 
+        // Create enemies text
+        Sprite enemies_text_sprite = new TextSprite(font, new float[] { 1f, 0f, 0f, 0.8f },
+                BlendMode.MULTIPLICATIVE, "Enemies: 0");
+        WorldStage.enemy_text = new GameObject(enemies_text_sprite, 0f, 0f);
+        WorldStage.enemy_text.set_scale(0.06f, 0.06f);
+        this.hud.add_object(WorldStage.enemy_text,
+                this.FPS_text, HUD.RelativePlacement.BELOW, LEFT, 0.05f);
+
+        // Create kills text
+        Sprite kills_text_sprite = new TextSprite(font, new float[] { 0f, 1f, 0f, 0.8f },
+                BlendMode.MULTIPLICATIVE, "Kills: 0");
+        WorldStage.kills_text = new GameObject(kills_text_sprite, 0f, 0f);
+        WorldStage.kills_text.set_scale(0.06f, 0.06f);
+        this.hud.add_object(WorldStage.kills_text,
+                WorldStage.enemy_text, HUD.RelativePlacement.BELOW, LEFT, 0.03f);
     }
 
     // Responds to input by allowing the HUD and the World to respond to it.

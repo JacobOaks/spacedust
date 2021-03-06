@@ -1,5 +1,6 @@
 package svenske.spacedust.physics;
 
+// A generic interface for anything to be considered collidable
 public interface PhysicsObject {
 
     /**

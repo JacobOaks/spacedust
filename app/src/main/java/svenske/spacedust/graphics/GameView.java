@@ -3,7 +3,6 @@ package svenske.spacedust.graphics;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
 
 import svenske.spacedust.utils.Node;
 

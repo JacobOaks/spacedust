@@ -1,9 +1,6 @@
 package svenske.spacedust.gameobject;
 
-import android.util.Log;
-
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import svenske.spacedust.graphics.AnimatedSprite;
@@ -14,42 +11,43 @@ import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.TextureAtlas;
 import svenske.spacedust.physics.PhysicsObject;
 
-//
-
 /**
  * A generic Ship class. Ships have:
  * - health & health regeneration
+ * - shooting capability
  * - idle and moving animation
  * - (optionally) overhead health bars
- * - light emittance depending on ship state
+ * - light emitting depending on ship state
  */
 public class Ship extends GameObject implements LightEmitter, AnimatedSprite.FrameChangeCallback,
         PhysicsObject {
 
     // Light info
-    private LightSource ls;
+    private LightSource ls;             // The ship's LightSource's properties change by state
     private int sprite_light_frame = 6; // Which frames of the animation have the lights on?
 
-    // Shooting info
+    // Shooting properties
     protected float bullet_speed      = 16f;   // Bullet speed (units/s)
     protected float bullet_damage     = 1.0f;  // Bullet damage
-    protected float shooting_accuracy = 0.95f; // 0 - bullet dir random; 1 - bullet dir perfect
+    protected float shooting_accuracy = 0.95f; // 0 - random bullet dir; 1 - perfect bullet dir;
+    protected float shooting_cooldown = 0.4f;  // Minimum time in between shots
+    protected float shooting_timer    = 0.0f;  // Timer for shooting
 
     // Health info
-    private final float max_health = 10f;     // What's the maximum health I can have?
-    private float health = 10f;               // How much health do I currently have?
-    private float health_regen_rate = 1f;     // How quickly health should regenerate (health/s);
-    private float health_regen_cooldown = 5f; // Time after being damaged where regeneration begins
-    private float health_regen_counter  = 0f; // Counter to health regeneration beginning
-    private Bar overhead_hp_bar;              // An HP bar rendered above the ship.
+    private final float health_regen_cooldown = 5f;  // Time after damage where regeneration begins
+    private final float health_regen_rate     = 1f;  // How quickly health regenerates (health/s);
+    private final float max_health            = 10f; // Maximum health the ship can have
+    private float health                      = 10f; // How much health the ship currently has
+    private float health_regen_counter        = 0f;  // Counter to health regeneration beginning
+    private Bar overhead_hp_bar;                     // An HP bar rendered above the ship.
 
     // Movement info
-    protected float max_v = 6.0f;             // How fast can I go (in one axis)?
-    protected boolean moving = false;         // Is the ship moving?
+    protected float max_v    = 5.0f;  // Maximum velocity the ship can go
+    protected boolean moving = false; // Flag denoting whether the ship is moving
 
     // Object creator/deleter callbacks
-    private ObjectCreator obj_creator;
-    private ObjectDeleter obj_deleter;
+    private final ObjectCreator obj_creator; // Used to create bullets in the world
+    private final ObjectDeleter obj_deleter; // Used to delete the ship if it dies
 
     /**
      * Constructs the ship
@@ -60,8 +58,12 @@ public class Ship extends GameObject implements LightEmitter, AnimatedSprite.Fra
     public Ship(TextureAtlas atlas, int atlas_row, float x, float y, boolean health_bar,
                 ObjectCreator obj_creator, ObjectDeleter obj_deleter) {
         super(null, x, y);
+
+        // Create sprite and light source
         this.setup_sprite(atlas, atlas_row);
         this.ls = new LightSource(new float[] { 0f, 0f, 0f }, 5f, 4f, null);
+
+        // Save object creator and deleter
         this.obj_creator = obj_creator;
         this.obj_deleter = obj_deleter;
 
@@ -104,7 +106,7 @@ public class Ship extends GameObject implements LightEmitter, AnimatedSprite.Fra
         ((AnimatedSprite)this.sprite).set_frame_change_callback(this);
     }
 
-    // Responds to frame changes by appropriately setting light information
+    // Responds to animation frame changes by appropriately setting light information
     @Override
     public void on_frame_change(int frame) {
 
@@ -158,16 +160,28 @@ public class Ship extends GameObject implements LightEmitter, AnimatedSprite.Fra
         // Update health
         if (this.health_regen_counter > 0f) this.health_regen_counter -= dt;
         else this.heal(this.health_regen_rate * dt);
+
+        // Update shooting timer
+        if (this.shooting_timer > 0f) this.shooting_timer -= dt;
     }
 
+    // Renders the ship and its overhead bar if it has one
     @Override
     void render(ShaderProgram sp) {
         super.render(sp);
         if (this.overhead_hp_bar != null) this.overhead_hp_bar.render(sp);
     }
 
-    // Generates a new bullet shot from the ship
+    /**
+     * Generates a new bullet traveling in the direction of the ship's rotation if the shooting
+     * cooldown is over
+     * @param hostile whether the bullet is hostile (harms the player) or not (harms enemies)
+     */
     public void shoot(boolean hostile) {
+
+        // Make sure cool-down is over and reset it if it is
+        if (this.shooting_timer > 0f) return;
+        this.shooting_timer = this.shooting_cooldown;
 
         // Figure out an accuracy offset
         float max_offset = (float)Math.PI *  (1f - this.shooting_accuracy);
@@ -183,11 +197,12 @@ public class Ship extends GameObject implements LightEmitter, AnimatedSprite.Fra
     // Sets the ship's health to the given health
     public void set_health(float health) {
         this.health = Math.min(this.max_health, health);
-        if (this.overhead_hp_bar != null)
+        if (this.overhead_hp_bar != null)       // Update health bar
             this.overhead_hp_bar.set_fill(this.health / this.max_health);
-        if (this.health <= 0f) this.has_died();
+        if (this.health <= 0f) this.has_died(); // Check for death
     }
 
+    // Deletes the ship when it dies
     protected void has_died() {
         this.obj_deleter.on_object_delete(this);
     }
@@ -207,6 +222,7 @@ public class Ship extends GameObject implements LightEmitter, AnimatedSprite.Fra
         else this.set_health(this.health + health);
     }
 
+    // Responds to velocity setting by bounding the velocity, updating animation, and rotating
     @Override
     public void set_velocity(float vx, float vy) {
         super.set_velocity(
@@ -221,6 +237,7 @@ public class Ship extends GameObject implements LightEmitter, AnimatedSprite.Fra
         }
     }
 
+    // Stops the ship completely
     public void stop() {
         this.vx = this.vy = 0f;
         if (this.moving) {
@@ -233,17 +250,20 @@ public class Ship extends GameObject implements LightEmitter, AnimatedSprite.Fra
     @Override
     public LightSource get_light() { return this.ls; }
 
-    public float get_health() { return this.health; }
-    public float get_max_health() { return this.max_health; }
-
+    // Ship bounds are defined by a circle with radius 0.45f around the ship's center
     @Override
     public float[] get_bounds() {
         float[] size = this.get_size();
         return new float[] { this.x, this.y, size[0] * 0.45f};
     }
 
-    @Override
-    public void on_collide(PhysicsObject other) {
+    // Return the ship's health
+    public float get_health() { return this.health; }
 
-    }
+    // Return the ship's maximum health
+    public float get_max_health() { return this.max_health; }
+
+    // Collisions with bullets are handled in the bullet's on_collide method
+    @Override
+    public void on_collide(PhysicsObject other) {}
 }

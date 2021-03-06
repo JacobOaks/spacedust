@@ -11,9 +11,11 @@ import svenske.spacedust.graphics.BlendMode;
 import svenske.spacedust.graphics.Camera;
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
+import svenske.spacedust.graphics.TextSprite;
 import svenske.spacedust.graphics.TextureAtlas;
 import svenske.spacedust.physics.PhysicsEngine;
 import svenske.spacedust.physics.PhysicsObject;
+import svenske.spacedust.stages.WorldStage;
 import svenske.spacedust.utils.Global;
 import svenske.spacedust.utils.Node;
 
@@ -21,15 +23,23 @@ import svenske.spacedust.utils.Node;
 public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter {
 
     // Area settings (TODO: delegate to individual Zone class instances)
-    public final float WORLD_WIDTH = 100f;        // How wide is the world?
-    public final float WORLD_HEIGHT = 75f;        // How tall is the world?
-    public final float AMBIENT_LIGHT = 0.85f;     // An ambient light multiplier
-    public final int MAX_LIGHTS = 64;             // This must be in-sync with the shader program
+    public final float WORLD_WIDTH = 100f;      // How wide is the world?
+    public final float WORLD_HEIGHT = 75f;      // How tall is the world?
+    public final float AMBIENT_LIGHT = 0.85f;   // An ambient light multiplier
+    public final int MAX_LIGHTS = 64;           // This must be in-sync with the shader program
 
     // World attributes
-    private ShaderProgram sp;                     // A shader program to render the world
-    private Camera cam;                           // A camera to view into the world
-    private PhysicsEngine physics_engine;         // A physics engine for bullets, etc.
+    private ShaderProgram sp;                   // A shader program to render the world
+    private Camera cam;                         // A camera to view into the world
+    private PhysicsEngine physics_engine;       // A physics engine for bullets, etc.
+    private Player player;                      // The player in the world
+
+    // Enemy info
+    private float current_enemies = 0f;         // How many enemies are currently in the world
+    private float killed_enemies = 0f;          // How many enemies have been killed
+    private float max_enemies = 10f;            // Maximum enemies before they stop spawning
+    private float enemy_spawn_cooldown = 5f;    // Cool-down between enemy spawns
+    private float enemy_spawn_timer = 5f;       // Timer for enemy spawns
 
     /**
      * A multiplier applied to the camera's view to get a scope of relevance. Collisions outside
@@ -40,12 +50,13 @@ public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter
 
     // World objects
     private GameObject background;
-    private List<GameObject> world_objects;        // List of all objects in the world
-    private List<PhysicsObject> physics_objects;   // Sublist of world_objects for physics_objects
+    private List<GameObject> world_objects;      // List of all objects in the world
+    private List<PhysicsObject> physics_objects; // Sublist of world_objects for physics_objects
 
-    private List<GameObject> to_add;          // A queue for new objects created during update
-    private List<GameObject> to_delete;
-    private float bullet_management_cooldown = 2f; // Bullets dynamically removed every so often
+    // Queues for object adding or deleting from other objects
+    private List<GameObject> to_add;             // A queue for objects to add
+    private List<GameObject> to_delete;          // A queue for objects to delete
+    private float bullet_management_timer = 2f;  // Bullets dynamically removed every so often
 
     // Constructs the world with the given continuous data from a previous destruction of context.
     public World(Node continuous_data) {
@@ -57,7 +68,7 @@ public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter
                 -WORLD_HEIGHT / 2f, WORLD_HEIGHT / 2f);
         this.physics_engine = new PhysicsEngine(this.cam, RELEVANCE_SCOPE_MUL);
 
-        // Initialize objects and bullets lists
+        // Initialize object lists
         this.world_objects = new ArrayList<>();
         this.physics_objects = new ArrayList<>();
         this.to_add = new ArrayList<>();
@@ -83,14 +94,14 @@ public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter
             if (go instanceof InputReceiver) ((InputReceiver)go).input(me, ignore_idx);
     }
 
-    // Updates all of the world objects.
+    // Updates all of the world's objects and check for collisions using the physics engine.
     public void update(float dt) {
 
         // Update world objects
         this.background.update(dt);
         for (GameObject go : this.world_objects) go.update(dt);
 
-        // Add or remove objects
+        // Add or remove objects if created/deleted during other object updates
         for (GameObject go : this.to_add) this.add_game_object(go);
         this.to_add.clear();
         for (GameObject go : this.to_delete) this.remove_game_object(go);
@@ -100,14 +111,31 @@ public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter
         this.physics_engine.check_collisions(this.physics_objects);
 
         // Manage bullets every so often
-        this.bullet_management_cooldown -= dt;
-        if (this.bullet_management_cooldown <= 0f) {
-            this.bullet_management_cooldown = 2f;
+        this.bullet_management_timer -= dt;
+        if (this.bullet_management_timer <= 0f) {
+            this.bullet_management_timer = 2f;
             this.manage_bullets();
+        }
+
+        // Enemy spawning
+        this.enemy_spawn_timer -= dt;
+        if (this.enemy_spawn_timer < 0f) {
+            this.enemy_spawn_timer += this.enemy_spawn_cooldown;
+            if (this.current_enemies < this.max_enemies) { // Spawn new enemy
+                float x = this.cam.get_x();
+                float y = this.cam.get_y();
+                while (!this.cam.out_of_view(x, y, 1.5f)) {
+                    x = this.WORLD_WIDTH * (float)Math.random() - (this.WORLD_WIDTH / 2f);
+                    y = this.WORLD_HEIGHT * (float)Math.random() - (this.WORLD_HEIGHT / 2f);
+                }
+                Enemy e = new Enemy(WorldStage.ship_ta, x, y, this);
+                e.set_target(this.player);
+                this.add_game_object(e);
+            }
         }
     }
 
-    // Dynamically manage bullets in the world
+    // Dynamically manage bullets in the world (remove them if too far away)
     private void manage_bullets() {
 
         // Remove bullets out of view
@@ -130,12 +158,12 @@ public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter
 
     // Uses the World's ShaderProgram to render all of the world objects
     public void render() {
-        this.sp.bind();
+        this.sp.bind();                                              // Bind
         this.set_lighting_uniforms();                                // Set lighting uniforms
         this.cam.set_uniforms(this.sp);                              // Set camera uniforms
         this.background.render(this.sp);                             // Render background first
         for (GameObject go : this.world_objects) go.render(this.sp); // Then render game objects
-        ShaderProgram.unbind_any_shader_program();
+        ShaderProgram.unbind_any_shader_program();                   // Unbind
     }
 
     // Sets lighting uniforms in the shader program pre-render
@@ -182,20 +210,17 @@ public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter
         this.physics_engine.resized();
     }
 
-    // Returns the World's camera
-    public Camera get_camera() { return this.cam; }
-
-    // Return import information for reloading the World after a context destroy.
-    public Node get_continuous_data() {
-        // TODO: Save GameObjects
-        return null;
-    }
-
     // Add a new GameObject to the World
     public void add_game_object(GameObject go) {
         this.world_objects.add(go);      // Add to list of game objects
         if (go instanceof PhysicsObject) // Add to sublist of physics objects if it is one
             this.physics_objects.add((PhysicsObject)go);
+        if (go instanceof Enemy) {
+            this.current_enemies += 1;
+            ((TextSprite) WorldStage.enemy_text.get_sprite()).set_text("Enemies: " +
+                    this.current_enemies);
+        }
+        if (go instanceof Player) this.player = (Player)go;
     }
 
     // Remove a GameObject from the World
@@ -204,6 +229,14 @@ public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter
         if (!removed)
             Log.e("spdt/world", "attempted to remove an object not present in the World");
         if (go instanceof PhysicsObject) this.physics_objects.remove(go);
+        if (go instanceof Enemy) {
+            this.current_enemies -= 1;
+            this.killed_enemies += 1;
+            ((TextSprite) WorldStage.enemy_text.get_sprite()).set_text("Enemies: " +
+                    this.current_enemies);
+            ((TextSprite) WorldStage.kills_text.get_sprite()).set_text("Kills: " +
+                    this.killed_enemies);
+        }
     }
 
     // Responds to newly produced objects by adding them to the world
@@ -213,4 +246,13 @@ public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter
     // Responds to object deletions by removing them from the world
     @Override
     public void on_object_delete(GameObject to_delete) { this.to_delete.add(to_delete); }
+
+    // Returns the World's camera
+    public Camera get_camera() { return this.cam; }
+
+    // Return import information for reloading the World after a context destroy.
+    public Node get_continuous_data() {
+        // TODO: Save GameObjects
+        return null;
+    }
 }
