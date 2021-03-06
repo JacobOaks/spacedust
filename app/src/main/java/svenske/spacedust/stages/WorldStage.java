@@ -1,8 +1,6 @@
 package svenske.spacedust.stages;
 
-import android.graphics.Rect;
 import android.opengl.GLES20;
-import android.util.Log;
 import android.view.MotionEvent;
 
 import java.util.ArrayList;
@@ -21,9 +19,6 @@ import svenske.spacedust.graphics.Font;
 import svenske.spacedust.graphics.Sprite;
 import svenske.spacedust.graphics.TextSprite;
 import svenske.spacedust.graphics.TextureAtlas;
-import svenske.spacedust.physics.Bounds;
-import svenske.spacedust.physics.CircularBounds;
-import svenske.spacedust.physics.RectangularBounds;
 import svenske.spacedust.utils.Global;
 import svenske.spacedust.utils.Node;
 
@@ -41,10 +36,6 @@ public class WorldStage implements Stage {
     Player player;
     GameObject FPS_text;
     Bar player_hp_bar;
-
-    GameObject dummy;
-    Bounds dummy_bounds;
-    Bounds player_bounds;
 
     // Create's the World and the HUD of the WorldStage as well as its starting GameObjects.
     @Override
@@ -77,17 +68,16 @@ public class WorldStage implements Stage {
 
         // Create player
         TextureAtlas ta = new TextureAtlas(R.drawable.texture_sheet, 16, 16);
-        this.player = new Player(ta, this.world.get_bullets(),0f, 0f, this.player_hp_bar);
+        this.player = new Player(ta,0f, 0f, this.player_hp_bar, this.world, this.world);
         this.world.add_game_object(this.player);
 
-        // TODO: remove; this is just for testing
-        this.player_bounds = new CircularBounds(0f, 0f, 0.9f * player.get_size()[0] / 2f);
-        this.dummy = new GameObject(new Sprite(null, 2, 1,
-                new float[] { 1f, 1f, 1f, 1f }, BlendMode.JUST_COLOR, null,
-                null), 4, 4);
-        this.dummy.set_scale(0.8f, 0.2f);
-        this.dummy_bounds = new RectangularBounds(4f, 4f, 0.8f, 0.2f);
-        this.world.add_game_object(dummy);
+        // Create enemy
+        Enemy e = new Enemy(ta, 5f, 5f, true, this.world, this.world);
+        e.set_target(this.player);
+        this.world.add_game_object(e);
+        e = new Enemy(ta, 3f, 9f, true, this.world, this.world);
+        e.set_target(this.player);
+        this.world.add_game_object(e);
     }
 
     // Creates the JoySticks
@@ -161,13 +151,6 @@ public class WorldStage implements Stage {
         this.hud.update(dt);
         float[] player_pos = this.player.get_pos();
         this.world.get_camera().set_position(player_pos[0], player_pos[1]);
-
-        this.player_bounds.set_center(player_pos[0], player_pos[1]);
-        if (this.player_bounds.collides(dummy_bounds)) {
-            this.dummy.get_sprite().set_color(new float[] { 1f, 0f, 0f, 1f });
-        } else {
-            this.dummy.get_sprite().set_color(new float[] { 1f, 1f, 1f, 1f });
-        }
     }
 
     // Responds to FPS updates by reflecting the new FPS via some text on the screen.

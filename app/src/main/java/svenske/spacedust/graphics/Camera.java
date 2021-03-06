@@ -29,9 +29,9 @@ public class Camera {
     }
 
     // Accessors
-    public float getX() { return this.x; }
-    public float getY() { return this.y; }
-    public float getZoom() { return this.zoom; }
+    public float get_x() { return this.x; }
+    public float get_y() { return this.y; }
+    public float get_zoom() { return this.zoom; }
 
     // Sets the camera's zoom and updates the bounds (if there are any)
     public void set_zoom(float zoom) {
@@ -76,19 +76,26 @@ public class Camera {
         }
     }
 
-    // Return if the given position is out of the camera's view (scaled by the given scalar)
-    public boolean out_of_view(float x, float y, float mul) {
-
+    // Returns the size (width/height) of the camera's view, multiplied by some given scalar
+    public float[] get_view_size(float mul) {
         // Calculate the current view times the given scalar
         float view_width = 2f * mul/ this.zoom;
         float view_height = 2f * mul / this.zoom;
         float ar = (float)Global.VIEWPORT_WIDTH / (float)Global.VIEWPORT_HEIGHT;
         if (ar > 1f) view_width *= ar;
         else view_height /= ar;
+        return new float[] { view_width, view_height };
+    }
+
+    // Return if the given position is out of the camera's view (scaled by the given scalar)
+    public boolean out_of_view(float x, float y, float mul) {
+
+        // Get the size of the camera's view scaled by the given multiplier
+        float[] view_size = this.get_view_size(mul);
 
         // Determine if given position is outside of the calculated view
-        if (x < this.x - view_width / 2 || x > this.x + view_width / 2) {
-            return y < this.y - view_height / 2 || y > this.y + view_height / 2;
+        if (x < this.x - view_size[0] / 2 || x > this.x + view_size[0] / 2) {
+            return y < this.y - view_size[1] / 2 || y > this.y + view_size[1] / 2;
         }
         return false;
     }

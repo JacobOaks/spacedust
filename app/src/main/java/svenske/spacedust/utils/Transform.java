@@ -57,6 +57,6 @@ public class Transform {
         y = ar_points[1];
 
         // Aspect -> World
-        return new float[] { (x / cam.getZoom()) + cam.getX(), (y / cam.getZoom()) + cam.getY() };
+        return new float[] { (x / cam.get_zoom()) + cam.get_x(), (y / cam.get_zoom()) + cam.get_y() };
     }
 }

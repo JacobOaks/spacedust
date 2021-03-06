@@ -9,43 +9,59 @@ import java.util.List;
 import svenske.spacedust.R;
 import svenske.spacedust.graphics.BlendMode;
 import svenske.spacedust.graphics.Camera;
-import svenske.spacedust.graphics.LightSource;
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
 import svenske.spacedust.graphics.TextureAtlas;
+import svenske.spacedust.physics.PhysicsEngine;
+import svenske.spacedust.physics.PhysicsObject;
 import svenske.spacedust.utils.Global;
 import svenske.spacedust.utils.Node;
 
 // Encapsulation for all that is to be considered part of the World (as opposed to the HUD).
-public class World {
+public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter {
 
-    // Area settings
-    // TODO (post-prototype): Grab from appropriate "zone"
-    public final float WORLD_WIDTH = 100f;
-    public final float WORLD_HEIGHT = 75f;
-    public final float AMBIENT_LIGHT = 0.85f;
-    public final int MAX_LIGHTS = 64;
+    // Area settings (TODO: delegate to individual Zone class instances)
+    public final float WORLD_WIDTH = 100f;        // How wide is the world?
+    public final float WORLD_HEIGHT = 75f;        // How tall is the world?
+    public final float AMBIENT_LIGHT = 0.85f;     // An ambient light multiplier
+    public final int MAX_LIGHTS = 64;             // This must be in-sync with the shader program
 
     // World attributes
-    private ShaderProgram sp;
-    private Camera cam;
+    private ShaderProgram sp;                     // A shader program to render the world
+    private Camera cam;                           // A camera to view into the world
+    private PhysicsEngine physics_engine;         // A physics engine for bullets, etc.
+
+    /**
+     * A multiplier applied to the camera's view to get a scope of relevance. Collisions outside
+     * of this scope will not be checked by the physics engine, and bullets outside of this scope
+     * will be removed.
+     */
+    private final float RELEVANCE_SCOPE_MUL = 1.4f;
 
     // World objects
     private GameObject background;
-    private List<GameObject> world_objects;
-    private List<Bullet> bullets;                  // Kept separate so can be dynamically removed
+    private List<GameObject> world_objects;        // List of all objects in the world
+    private List<PhysicsObject> physics_objects;   // Sublist of world_objects for physics_objects
+
+    private List<GameObject> to_add;          // A queue for new objects created during update
+    private List<GameObject> to_delete;
     private float bullet_management_cooldown = 2f; // Bullets dynamically removed every so often
 
     // Constructs the world with the given continuous data from a previous destruction of context.
     public World(Node continuous_data) {
 
-        // Setup shader program and camera, instantiate world object list
+        // Setup shader program, camera, physics engine
         this.sp = new ShaderProgram(R.raw.vertex_world, R.raw.fragment_world);
         this.cam = new Camera(0f, 0f, 1f);
         this.cam.set_bounds(-WORLD_WIDTH / 2f, WORLD_WIDTH / 2f,
                 -WORLD_HEIGHT / 2f, WORLD_HEIGHT / 2f);
+        this.physics_engine = new PhysicsEngine(this.cam, RELEVANCE_SCOPE_MUL);
+
+        // Initialize objects and bullets lists
         this.world_objects = new ArrayList<>();
-        this.bullets = new ArrayList<>();
+        this.physics_objects = new ArrayList<>();
+        this.to_add = new ArrayList<>();
+        this.to_delete = new ArrayList<>();
 
         // Create background
         TextureAtlas background_atlas = new TextureAtlas(R.drawable.background, 1, 1);
@@ -72,8 +88,16 @@ public class World {
 
         // Update world objects
         this.background.update(dt);
-        for (Bullet b: this.bullets) b.update(dt);
         for (GameObject go : this.world_objects) go.update(dt);
+
+        // Add or remove objects
+        for (GameObject go : this.to_add) this.add_game_object(go);
+        this.to_add.clear();
+        for (GameObject go : this.to_delete) this.remove_game_object(go);
+        this.to_delete.clear();
+
+        // Check for collisions
+        this.physics_engine.check_collisions(this.physics_objects);
 
         // Manage bullets every so often
         this.bullet_management_cooldown -= dt;
@@ -88,22 +112,29 @@ public class World {
 
         // Remove bullets out of view
         List<Bullet> to_remove = new ArrayList<>();
-        for (Bullet b : this.bullets) {
-            float[] pos = b.get_pos();
-            if (cam.out_of_view(pos[0], pos[1], 1.5f))
-                to_remove.add(b);
+        for (GameObject go : this.world_objects) {
+            if (go instanceof Bullet) {
+                Bullet b = (Bullet)go;
+                float[] pos = b.get_pos();
+                if (cam.out_of_view(pos[0], pos[1], RELEVANCE_SCOPE_MUL))
+                    to_remove.add(b);
+            }
         }
-        if (to_remove.size() > 0) this.bullets.removeAll(to_remove);
+
+        // Remove bullets from the full list of objects and the list of physics objects
+        if (to_remove.size() > 0) {
+            this.world_objects.removeAll(to_remove);
+            this.physics_objects.removeAll(to_remove);
+        }
     }
 
     // Uses the World's ShaderProgram to render all of the world objects
     public void render() {
         this.sp.bind();
-        this.set_lighting_uniforms();    // Set lighting uniforms
-        this.cam.set_uniforms(this.sp);  // Set camera uniforms
-        this.background.render(this.sp); // Render background first obviously
-        for (GameObject go : this.world_objects) go.render(this.sp); // Then render other objects
-        for (Bullet b : this.bullets) b.render(this.sp); // Then render bullets
+        this.set_lighting_uniforms();                                // Set lighting uniforms
+        this.cam.set_uniforms(this.sp);                              // Set camera uniforms
+        this.background.render(this.sp);                             // Render background first
+        for (GameObject go : this.world_objects) go.render(this.sp); // Then render game objects
         ShaderProgram.unbind_any_shader_program();
     }
 
@@ -128,18 +159,6 @@ public class World {
             }
         }
 
-        // Set bullet lighting uniforms
-        for (Bullet b : this.bullets) {
-            if (i >= this.MAX_LIGHTS)
-                Log.e("[spdt/world]",
-                        "Maximum light count exceeded! Ignoring remaining lights.");
-            else {
-                float[] pos = b.get_pos();
-                this.sp.set_light_uniform("lights", i, b.get_light(), pos[0], pos[1]);
-                i++;
-            }
-        }
-
         // Fill remaining light slots with null
         for (int j = i; j < MAX_LIGHTS; j++)
             this.sp.set_light_uniform("lights", j, null, -1, -1);
@@ -151,16 +170,16 @@ public class World {
      * - re-calculating the correct camera bounds
      */
     public void resized() {
+
+        // Update shader program
         this.sp.bind();
         this.sp.set_uniform("aspect_ratio",
                 ((float) Global.VIEWPORT_WIDTH / (float)Global.VIEWPORT_HEIGHT));
         ShaderProgram.unbind_any_shader_program();
-        this.cam.update_bounds();
-    }
 
-    // Add a new GameObject to the World
-    public void add_game_object(GameObject go) {
-        this.world_objects.add(go);
+        // Notify camera and physics engine
+        this.cam.update_bounds();
+        this.physics_engine.resized();
     }
 
     // Returns the World's camera
@@ -172,6 +191,26 @@ public class World {
         return null;
     }
 
-    // Return a reference to the bullets list to pass to bullet-creating objects
-    public List<Bullet> get_bullets() { return this.bullets; }
+    // Add a new GameObject to the World
+    public void add_game_object(GameObject go) {
+        this.world_objects.add(go);      // Add to list of game objects
+        if (go instanceof PhysicsObject) // Add to sublist of physics objects if it is one
+            this.physics_objects.add((PhysicsObject)go);
+    }
+
+    // Remove a GameObject from the World
+    public void remove_game_object(GameObject go) {
+        boolean removed = this.world_objects.remove(go);
+        if (!removed)
+            Log.e("spdt/world", "attempted to remove an object not present in the World");
+        if (go instanceof PhysicsObject) this.physics_objects.remove(go);
+    }
+
+    // Responds to newly produced objects by adding them to the world
+    @Override
+    public void on_object_create(GameObject new_object) { this.to_add.add(new_object); }
+
+    // Responds to object deletions by removing them from the world
+    @Override
+    public void on_object_delete(GameObject to_delete) { this.to_delete.add(to_delete); }
 }

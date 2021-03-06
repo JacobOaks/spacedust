@@ -24,6 +24,18 @@ import svenske.spacedust.graphics.Sprite;
  */
 public class GameObject {
 
+    /*
+     * An interface that should be implemented by the housing structure (world) to allow new objects
+     * to be produced by a GameObject that requires it
+     */
+    public interface ObjectCreator { void on_object_create(GameObject new_object); }
+
+    /**
+     * An interface that should be implemented by the housing structure (world) to allow objects to
+     * delete other objects from the World
+     */
+    public interface ObjectDeleter { void on_object_delete(GameObject to_delete); }
+
     // Attributes
     protected Sprite sprite;
     protected float x, y;

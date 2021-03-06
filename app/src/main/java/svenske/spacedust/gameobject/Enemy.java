@@ -18,7 +18,7 @@ public class Enemy extends Ship {
 
     private float hone_poll_cooldown = 1f;
     private float hone_poll_timer    = 0.0f;
-    private float shooting_cooldown  = 1f;
+    private float shooting_cooldown  = 0.4f;
     private float shooting_timer     = 0.0f;
     private float focus_poll_timer   = 1f;
     private float focus_poll_cooldown = 1f;
@@ -27,11 +27,15 @@ public class Enemy extends Ship {
      * Constructs the enemy
      *
      * @param atlas      the atlas containing the ship textures
-     * @param bullets    this should be the list of bullets from the World.
      * @param health_bar whether to give the Ship an overhead health bar
      */
-    public Enemy(TextureAtlas atlas, List<Bullet> bullets, float x, float y, boolean health_bar) {
-        super(atlas, 2, bullets, x, y, health_bar);
+    public Enemy(TextureAtlas atlas, float x, float y, boolean health_bar,
+                 ObjectCreator obj_creator, ObjectDeleter obj_deleter) {
+        super(atlas, 2, x, y, health_bar, obj_creator, obj_deleter);
+
+        this.bullet_speed = 20f;
+        this.shooting_accuracy = 0.95f;
+        this.bullet_damage = 1f;
     }
 
     @Override
@@ -53,6 +57,10 @@ public class Enemy extends Ship {
 
     private void poll_for_focus() {
 
+        if (this.target == null) {
+            this.focus = false;
+            return;
+        }
         float[] target_pos = this.target.get_pos();
         float dx = target_pos[0] - this.x;
         float dy = target_pos[1] - this.y;
@@ -103,7 +111,7 @@ public class Enemy extends Ship {
 
         if (this.shooting_timer <= 0f) {
             this.shooting_timer = this.shooting_cooldown;
-            if (d < this.max_shoot_distance) this.shoot();
+            if (d < this.max_shoot_distance) this.shoot(true);
         }
     }
 

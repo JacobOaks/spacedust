@@ -12,6 +12,7 @@ import svenske.spacedust.graphics.BlendMode;
 import svenske.spacedust.graphics.LightSource;
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.TextureAtlas;
+import svenske.spacedust.physics.PhysicsObject;
 
 //
 
@@ -22,16 +23,17 @@ import svenske.spacedust.graphics.TextureAtlas;
  * - (optionally) overhead health bars
  * - light emittance depending on ship state
  */
-public class Ship extends GameObject implements LightEmitter, AnimatedSprite.FrameChangeCallback {
+public class Ship extends GameObject implements LightEmitter, AnimatedSprite.FrameChangeCallback,
+        PhysicsObject {
 
     // Light info
     private LightSource ls;
     private int sprite_light_frame = 6; // Which frames of the animation have the lights on?
 
     // Shooting info
-    private float bullet_speed      = 16f;   // Bullet speed (units/s)
-    private float shooting_accuracy = 0.97f; // 0 - bullet dir random; 1 - bullet dir perfect
-    private List<Bullet> bullets;            // A reference to the World's list of bullets to add to
+    protected float bullet_speed      = 16f;   // Bullet speed (units/s)
+    protected float bullet_damage     = 1.0f;  // Bullet damage
+    protected float shooting_accuracy = 0.95f; // 0 - bullet dir random; 1 - bullet dir perfect
 
     // Health info
     private final float max_health = 10f;     // What's the maximum health I can have?
@@ -42,22 +44,26 @@ public class Ship extends GameObject implements LightEmitter, AnimatedSprite.Fra
     private Bar overhead_hp_bar;              // An HP bar rendered above the ship.
 
     // Movement info
-    protected float max_v = 4.0f;             // How fast can I go (in one axis)?
+    protected float max_v = 6.0f;             // How fast can I go (in one axis)?
     protected boolean moving = false;         // Is the ship moving?
+
+    // Object creator/deleter callbacks
+    private ObjectCreator obj_creator;
+    private ObjectDeleter obj_deleter;
 
     /**
      * Constructs the ship
      * @param atlas the atlas containing the ship textures
      * @param atlas_row the first row of the ship's sprites in the atlas
-     * @param bullets this should be the list of bullets from the World.
      * @param health_bar whether to give the Ship an overhead health bar
      */
-    public Ship(TextureAtlas atlas, int atlas_row, List<Bullet> bullets, float x, float y,
-                boolean health_bar) {
+    public Ship(TextureAtlas atlas, int atlas_row, float x, float y, boolean health_bar,
+                ObjectCreator obj_creator, ObjectDeleter obj_deleter) {
         super(null, x, y);
         this.setup_sprite(atlas, atlas_row);
         this.ls = new LightSource(new float[] { 0f, 0f, 0f }, 5f, 4f, null);
-        this.bullets = bullets;
+        this.obj_creator = obj_creator;
+        this.obj_deleter = obj_deleter;
 
         // Setup health
         this.set_health(this.max_health);
@@ -161,15 +167,17 @@ public class Ship extends GameObject implements LightEmitter, AnimatedSprite.Fra
     }
 
     // Generates a new bullet shot from the ship
-    public void shoot() {
+    public void shoot(boolean hostile) {
 
         // Figure out an accuracy offset
         float max_offset = (float)Math.PI *  (1f - this.shooting_accuracy);
         float offset = (float)Math.random() * 2 * max_offset - max_offset;
 
         // Create bullet
-        this.bullets.add(new Bullet(new float[] { 0.5f, 0.5f, 0.5f, 1f }, this.x, this.y,
-                this.rot + offset, this.bullet_speed));
+        Bullet b = new Bullet(new float[] { 0.5f, 0.5f, 0.5f, 1f }, this.x, this.y,
+                this.rot + offset, this.bullet_speed, this.obj_deleter, hostile,
+                this.bullet_damage);
+        this.obj_creator.on_object_create(b);
     }
 
     // Sets the ship's health to the given health
@@ -177,7 +185,11 @@ public class Ship extends GameObject implements LightEmitter, AnimatedSprite.Fra
         this.health = Math.min(this.max_health, health);
         if (this.overhead_hp_bar != null)
             this.overhead_hp_bar.set_fill(this.health / this.max_health);
-        if (this.health <= 0f) Log.d("[spdt/ship]", "ship has died!");
+        if (this.health <= 0f) this.has_died();
+    }
+
+    protected void has_died() {
+        this.obj_deleter.on_object_delete(this);
     }
 
     // Deal the given amount of damage to the ship's health
@@ -223,4 +235,15 @@ public class Ship extends GameObject implements LightEmitter, AnimatedSprite.Fra
 
     public float get_health() { return this.health; }
     public float get_max_health() { return this.max_health; }
+
+    @Override
+    public float[] get_bounds() {
+        float[] size = this.get_size();
+        return new float[] { this.x, this.y, size[0] * 0.45f};
+    }
+
+    @Override
+    public void on_collide(PhysicsObject other) {
+
+    }
 }

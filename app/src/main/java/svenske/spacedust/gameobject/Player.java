@@ -30,11 +30,11 @@ public class Player extends Ship implements JoyStick.JoystickReceiver {
      * Constructs the player
      *
      * @param atlas the atlas containing the ship textures
-     * @param bullets this should be the list of bullets from the World.
      * @param hp_bar a health bar (ideally displayed on the HUD) for the player to update
      */
-    public Player(TextureAtlas atlas, List<Bullet> bullets, float x, float y, Bar hp_bar) {
-        super(atlas,0, bullets, x, y, false);
+    public Player(TextureAtlas atlas, float x, float y, Bar hp_bar,
+                  ObjectCreator obj_creator, ObjectDeleter obj_deleter) {
+        super(atlas,0, x, y, false, obj_creator, obj_deleter);
         this.hud_hp_bar = hp_bar;
         this.set_health(this.get_max_health());
         this.max_v = 6.0f;
@@ -79,7 +79,7 @@ public class Player extends Ship implements JoyStick.JoystickReceiver {
         // Update shooting timer
         if (this.shooting) this.shooting_timer -= dt;
         if (this.shooting && this.shooting_timer <= 0f) {
-            this.shoot();
+            this.shoot(false);
             this.shooting_timer += this.shooting_cooldown;
         }
     }
