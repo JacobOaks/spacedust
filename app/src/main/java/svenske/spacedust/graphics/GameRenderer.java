@@ -14,24 +14,19 @@ import svenske.spacedust.stages.WorldStage;
 import svenske.spacedust.utils.Global;
 import svenske.spacedust.utils.Node;
 
-/**
- * Renders on a GLSurfaceView. Is the connecting piece between Android and the current Stage.
- */
+// Renders on a GLSurfaceView. Is the connecting piece between Android and the current Stage.
 public class GameRenderer implements GLSurfaceView.Renderer {
 
-    private Stage stage;           // The current stage
+    // The current stage
+    private Stage stage;
 
-    /**
-     * These attributes are used for timekeeping
-     */
+    // Timekeeping attributes
     private long last_cycle = -1;  // This time since the last cycle (ms)
     private int acc_frame = 0;     // Count frames
     private float acc_time = 0;    // Count seconds
     private final float FPS_report_interval = 0.5f; // Interval in s between FPS logs
 
-    /**
-     * Whenever the surface is created, initialize GL and the current Stage.
-     */
+    // Whenever the surface is created, initialize GL and the current Stage.
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         Log.d("spdt/gamerenderer", "surface (re-)created");
@@ -39,9 +34,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
         init_stage();
     }
 
-    /**
-     * Initializes GL after the context was created in GameView.
-     */
+    // Initializes GL after the context was created in GameView.
     private void init_gl() {
 
         // Set background frame color
@@ -65,9 +58,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
         this.stage.init(GameActivity.access_continuous_data());
     }
 
-    /**
-     * Called every redraw. Performs updates and renders.
-     */
+    // Called every redraw. Performs updates and renders.
     @Override
     public void onDrawFrame(GL10 gl) {
         this.update();
@@ -93,9 +84,7 @@ public class GameRenderer implements GLSurfaceView.Renderer {
      */
     public boolean input(MotionEvent me) { return this.stage.input(me); }
 
-    /**
-     * Performs timekeeping calculations and updates the current Stage.
-     */
+    // Performs timekeeping calculations and updates the current Stage.
     private void update() {
 
         // Timekeeping
@@ -126,15 +115,10 @@ public class GameRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    /**
-     * Renders the current Stage
-     */
+    // Renders the current Stage
     private void render() { this.stage.render(); }
 
-    /**
-     * @return continuous data from the Stage to be passed up to be saved across OpenGL ES context
-     *         changes.
-     */
+    // Returns continuous data from the Stage to be saved across OpenGL ES context changes.
     public Node get_continuous_data() {
         return this.stage == null ? null : this.stage.get_continuous_data();
     }

@@ -11,7 +11,8 @@ import svenske.spacedust.utils.Node;
  */
 public class GameView extends GLSurfaceView {
 
-    private final GameRenderer game_renderer; // Renders GL onto this view
+    // Renders GL onto this view
+    private final GameRenderer game_renderer;
 
     /**
      * Creates the OpenGL ES context and the renderer.
@@ -28,17 +29,13 @@ public class GameView extends GLSurfaceView {
         this.setRenderer(this.game_renderer);
     }
 
-    /**
-     * Responds to touch events by passing the input to the renderer.
-     */
+    // Responds to touch events by passing the input to the renderer.
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         return this.game_renderer.input(event);
     }
 
-    /**
-     * @return any important continuous data to be used again if the OpenGL ES context changes.
-     */
+    // Returns any important continuous data to be used again if the OpenGL ES context changes.
     public Node get_continuous_data() {
         return this.game_renderer.get_continuous_data();
     }

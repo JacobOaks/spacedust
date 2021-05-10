@@ -5,14 +5,10 @@ import java.util.Map;
 
 import svenske.spacedust.utils.Node;
 
-/**
- * An extension of TextureAtlas with some useful functions tailored towards displaying text
- */
+// An extension of TextureAtlas with some useful functions tailored towards displaying text
 public class Font extends TextureAtlas {
 
-    /**
-     * Font data
-     */
+    // Attributes
     private Map<Character, Integer> cutoffs;
     private int standard_cutoff = 0;
     private char starting_char  = 0;
@@ -42,9 +38,7 @@ public class Font extends TextureAtlas {
         }
     }
 
-    /**
-     * Makes sure the given character can be represented by this font
-     */
+    // Makes sure the given character can be represented by this font
     private void check_char_validity(char c) {
         // Check for out-of-bounds character
         if (c < this.starting_char)

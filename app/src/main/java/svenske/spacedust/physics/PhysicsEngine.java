@@ -68,7 +68,7 @@ public class PhysicsEngine {
     // Narrows down the given list of objects to a list of only objects that are relevant
     private List<PhysicsObject> get_scoped_objects(List<PhysicsObject> objects) {
 
-        /**
+        /*
          * Determine min annd max position based on camera's position for an object to be considered
          * relevant. If the zoom has changed, a little more calculation is involved.
          */
@@ -83,7 +83,7 @@ public class PhysicsEngine {
         for (PhysicsObject po : objects) {
             float[] bounds = po.get_bounds();
 
-            /**
+            /*
              * IMPORTANT ASSUMPTION:
              * All of our objects will have size smaller than the size of the padding included in
              * the scope. In other words we will ONLY have objects small enough such that they will

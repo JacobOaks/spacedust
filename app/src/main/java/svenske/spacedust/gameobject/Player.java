@@ -6,6 +6,8 @@ import svenske.spacedust.graphics.LightSource;
 import svenske.spacedust.graphics.TextureAtlas;
 import svenske.spacedust.physics.PhysicsObject;
 
+// TODO: set particles
+
 /**
  * A player is an entity that:
  * - is controlled by a movement and a shooting joystick
@@ -36,17 +38,15 @@ public class Player extends Entity implements JoyStick.JoystickReceiver,
     /**
      * Constructs the player
      * @param atlas the atlas containing the ship textures
-     * @param x the starting x for the player
-     * @param y the starting y for the player
      * @param hp_bar a health bar (ideally displayed on the HUD) for the player to update
-     * @param world a reference to the world to use as an object creator/deleter
+     * The rest of the attributes are the same as in the superclass constructor
      */
     public Player(TextureAtlas atlas, float x, float y, Bar hp_bar, World world) {
 
         // Call super, setup animation and sprite
         super(new AnimatedSprite(atlas, Animation.get_generic_ship_animations(0),
                 "idle", null, null), x, y, "Player",
-                20f, 1f, 5f, world, world);
+                20f, 1f, 5f, world);
         ((AnimatedSprite)this.sprite).set_frame_change_callback(this);
 
         // Create light source
@@ -87,7 +87,7 @@ public class Player extends Entity implements JoyStick.JoystickReceiver,
 
     // Updates the player
     @Override
-    void update(float dt) {
+    public void update(float dt) {
 
         // Update light source
         this.light_source.update(dt);
@@ -102,9 +102,7 @@ public class Player extends Entity implements JoyStick.JoystickReceiver,
         if (this.shooting) this.shoot();
     }
 
-    /**
-     * Generates a new bullet traveling in the direction of the player's rotation
-     */
+    // Generates a new bullet traveling in the direction of the player's rotation
     public void shoot() {
 
         // Make sure cool-down is over and reset it if it is
@@ -116,10 +114,10 @@ public class Player extends Entity implements JoyStick.JoystickReceiver,
         float offset = (float)Math.random() * 2 * max_offset - max_offset;
 
         // Create bullet
-        Bullet b = new Bullet(new float[] { 0.5f, 0.5f, 0.5f, 1f }, this.x, this.y,
-                this.rot + offset, this.bullet_speed, this.object_deleter, false,
+        Projectile b = Projectile.create_bullet(new float[] { 0.5f, 0.5f, 0.5f, 1f }, this.x, this.y,
+                this.rot + offset, this.bullet_speed, this.world, false,
                 this.bullet_damage);
-        this.object_creator.on_object_create(b);
+        this.world.on_object_create(b);
     }
 
     // Responds to JoyStick input ending by updating player state
@@ -139,7 +137,7 @@ public class Player extends Entity implements JoyStick.JoystickReceiver,
         }
     }
 
-    // Player bullet interaction handle in bullet collision method
+    // Player projectile interaction handled in projectile collision method
     @Override
     public void on_collide(PhysicsObject other) {}
 
@@ -190,12 +188,7 @@ public class Player extends Entity implements JoyStick.JoystickReceiver,
                 Math.max(Math.min(vy, this.max_v), -this.max_v));
     }
 
-    // Stops the player completely, including acceleration
-    public void stop() {
-        this.ax = this.ay = 0f;
-    }
-
-    // Return the ship's LightSource
+    // Return the player's LightSource
     @Override
     public LightSource get_light() { return this.light_source; }
 }

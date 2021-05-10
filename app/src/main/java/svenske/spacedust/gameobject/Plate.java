@@ -7,27 +7,25 @@ import svenske.spacedust.graphics.TextSprite;
 import svenske.spacedust.utils.Global;
 
 /**
- * A render-able nameplate that has an update-able HP bar and a single-line string
+ * A render-able nameplate that displays an update-able HP bar and a single-line name
  */
 public class Plate {
 
     // Attributes
-    private Bar hp_bar;
-    private float inner_pad;
+    private Bar hp_bar;      // The nameplate's health bar
+    private float inner_pad; // The padding between the health bar and the name
 
     // Name attributes
-    private Sprite name;
-    private float x, y;
-    private float name_x, name_y;
+    private Sprite name;          // The name on the plate
+    private float x, y;           // Position of the plate
+    private float name_x, name_y; // Position of the name specifically
+    // Scale for the name (is very large by default)
     public static final float NAME_SCALE = 0.22f;
 
     /**
      * Creates the plate
-     * @param name the single-line string of text to display on the plate
      * @param starting_fill the starting fill for the hp bar [0, 1]
-     * @param x the x position to place the plate at
-     * @param y the y position to place the plate at
-     * @param inner_pad the padding between the string of text and the health bar
+     * The rest of the arguments are described in the attribute declarations
      */
     public Plate(String name, float starting_fill, float x, float y, float inner_pad) {
 
@@ -78,8 +76,8 @@ public class Plate {
     // Calculates the size of the entire plate
     public float[] get_size() {
         float[] text_sz = this.name.get_size();
-        text_sz[0] *= this.NAME_SCALE;
-        text_sz[1] *= this.NAME_SCALE;
+        text_sz[0] *= Plate.NAME_SCALE;
+        text_sz[1] *= Plate.NAME_SCALE;
         float[] bar_sz  = this.hp_bar.get_size();
         return new float[] { Math.max(text_sz[0], bar_sz[0]), text_sz[1] + bar_sz[1] + this.inner_pad };
     }

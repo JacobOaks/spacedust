@@ -32,9 +32,7 @@ public class TextAnimation {
         this.check_integrity();
     }
 
-    /**
-     * Does some basic checks to make sure the given text animation information is valid
-     */
+    // Does some basic checks to make sure the given text animation information is valid
     public void check_integrity() {
 
         // Check frame time valid

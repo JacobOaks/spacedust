@@ -1,12 +1,14 @@
 package svenske.spacedust.utils;
 
 import svenske.spacedust.graphics.Font;
+import svenske.spacedust.graphics.TextureAtlas;
 
 // A class to store global constants/other info
 public class Global {
 
-    // Global font reference
+    // Global textures
     public static Font font = null;
+    public static TextureAtlas ta = null;
 
     // Color to pass to glClearColor()
     public static final float[] CLEAR_COLOR = new float[] { 0.0f, 0.0f, 0.0f, 1.0f };

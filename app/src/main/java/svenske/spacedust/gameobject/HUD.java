@@ -36,13 +36,14 @@ public class HUD implements Sprite.ResizeCallback {
     // Represents a single node in the hierarchy of HUD elements whose positions depend each other.
     private class HUDObject {
 
+        // Attributes
         GameObject object;           // The object whose placement is described.
         List<HUDObject> children;    // Child objects whose placements depend on this object.
         RelativePlacement placement; // How this object's placement relates to its parent's
         Alignment alignment;         // How the object aligns with its parent
         float padding;               // Padding between this object and its parent.
 
-        // Constructs the HUDObject by enumerating its properties
+        // Constructs the HUDObject by enumerating its attributes describes above
         private HUDObject(GameObject object, RelativePlacement placement, Alignment alignment,
                           float padding) {
             this.object = object;
@@ -60,9 +61,9 @@ public class HUD implements Sprite.ResizeCallback {
 
     // Constructs the HUD
     public HUD() {
-        this.sp = new ShaderProgram(R.raw.vertex_hud, R.raw.fragment_hud);
+        this.sp               = new ShaderProgram(R.raw.vertex_hud, R.raw.fragment_hud);
         this.hud_object_roots = new ArrayList<>();
-        this.go_to_ho = new HashMap<>();
+        this.go_to_ho         = new HashMap<>();
     }
 
     // Allows all GameObjects in the HUD to respond to input if they are InputReceivers

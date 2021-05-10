@@ -43,6 +43,7 @@ public class ShaderProgram {
         GLES20.glLinkProgram(this.program);
     }
 
+    // Binds the shader program
     public void bind() {
         GLES20.glUseProgram(this.program);
     }

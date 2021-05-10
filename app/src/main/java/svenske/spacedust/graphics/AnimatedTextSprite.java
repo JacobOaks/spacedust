@@ -20,9 +20,7 @@ import static android.opengl.GLES20.glViewport;
  */
 public class AnimatedTextSprite extends TextSprite {
 
-    /**
-     * A map from strings (animation) names to actual TextAnimation info.
-     */
+    // A map from strings (animation) names to actual TextAnimation info.
     private Map<String, TextAnimation> anims;
     private TextAnimation current_anim; // currently active animation
     private String starting_anim;       // stored in case of solidification
@@ -31,6 +29,11 @@ public class AnimatedTextSprite extends TextSprite {
     private int current_frame;
     private float time_left;
 
+    /**
+     * Constructs the animated text sprite
+     * @param anims the animations this sprite should support
+     * @param starting_anim the name of the starting animation
+     */
     public AnimatedTextSprite(Map<String, TextAnimation> anims, String starting_anim) {
         super(
                 anims.get(starting_anim).fonts[0],
@@ -39,6 +42,7 @@ public class AnimatedTextSprite extends TextSprite {
                 anims.get(starting_anim).texts[0]
                 );
 
+        // Save data
         this.anims = anims;
         this.current_anim = this.anims.get(starting_anim);
         this.current_frame = 0;
@@ -46,9 +50,7 @@ public class AnimatedTextSprite extends TextSprite {
         this.starting_anim = starting_anim;
     }
 
-    /**
-     * Checks for necessary frame changes
-     */
+    // Checks for necessary frame changes
     @Override
     public void update(float dt) {
         super.update(dt);
@@ -59,12 +61,9 @@ public class AnimatedTextSprite extends TextSprite {
         }
     }
 
-    /**
-     * Switches the currently active frame
-     */
+    // Switches the currently active frame
     public void switch_frames(int frame) {
         this.current_frame = frame % this.current_anim.frames;
-
         boolean buffers_need_updated = false;
 
         // Update font

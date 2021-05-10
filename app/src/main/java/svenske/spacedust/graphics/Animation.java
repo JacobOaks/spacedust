@@ -5,12 +5,10 @@ import android.util.Log;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * An encapsulation for customizable animation data.
- */
+// An encapsulation for customizable animation data.
 public class Animation {
 
-    // Static method to get standard animations for ships
+    // Returns standard animation data for ships
     public static Map<String, Animation> get_generic_ship_animations(int idle_atlas_row) {
         Map<String, Animation> anims = new HashMap<>();
 
@@ -60,9 +58,7 @@ public class Animation {
         this.check_integrity();
     }
 
-    /**
-     * Does some basic checks to make sure the given animation information is valid
-     */
+    // Does some basic checks to make sure the given animation information is valid
     public void check_integrity() {
 
         // Check frame time valid

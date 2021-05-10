@@ -185,6 +185,7 @@ public class JoyStick extends GameObject implements InputReceiver {
                 0f);
     }
 
+    // Responds to scale setting requests by making fun of you
     @Override
     public void set_scale(float sx, float sy) {
         if (sx != sy)
@@ -193,11 +194,9 @@ public class JoyStick extends GameObject implements InputReceiver {
         super.set_scale(sx, sy);
     }
 
+    // Accessors
     private float get_outer_circle_radius() {
         return this.sx / 2;
     }
-
-    private float get_inner_circle_radius() {
-        return this.inner_circle_radius_ratio * this.get_outer_circle_radius();
-    }
+    private float get_inner_circle_radius() { return this.inner_circle_radius_ratio * this.get_outer_circle_radius(); }
 }

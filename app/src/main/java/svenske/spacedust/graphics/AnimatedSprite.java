@@ -30,7 +30,8 @@ public class AnimatedSprite extends Sprite {
     /**
      * Creates the AnimatedSprite with the given atlas and animation info (mapped from name to
      * animation).
-     * @param starting_anim the name of the animation to start with/
+     * @param starting_anim the name of the animation to start with
+     * The rest of the arguments follow from the superclass constructor.
      */
     public AnimatedSprite(TextureAtlas atlas, Map<String, Animation> anims, String starting_anim,
                           float[] vertex_positions, short[] draw_order) {
@@ -41,15 +42,14 @@ public class AnimatedSprite extends Sprite {
                 anims.get(starting_anim).blend_modes[0],
                 vertex_positions, draw_order);
 
+        // Save data
         this.anims = anims;
         this.current_anim = this.anims.get(starting_anim);
         this.current_frame = 0;
         this.time_left = this.current_anim.frame_time;
     }
 
-    /**
-     * Checks for necessary frame changes
-     */
+    // Checks for necessary frame changes
     @Override
     public void update(float dt) {
         super.update(dt);
@@ -60,17 +60,17 @@ public class AnimatedSprite extends Sprite {
         }
     }
 
-    /**
-     * Switches the currently active frame
-     */
+    // Switches the currently active frame
     public void switch_frames(int frame) {
         this.current_frame = frame % this.current_anim.frames;
 
+        // Update atlas row
         int atlas_row = -1;
         if (this.current_anim.atlas_rows != null)
             atlas_row = this.current_anim.atlas_rows[
                     this.current_frame % this.current_anim.atlas_rows.length];
 
+        // Update atlas column
         int atlas_col = -1;
         if (this.current_anim.atlas_cols != null)
             atlas_col = this.current_anim.atlas_cols[

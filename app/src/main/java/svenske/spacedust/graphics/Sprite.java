@@ -137,9 +137,7 @@ public class Sprite {
         }
     }
 
-    /**
-     * Verifies that an atlas and color are valid given a blend mode
-     */
+    // Verifies that an atlas and color are valid given a blend mode
     protected static void check_blend_mode(boolean has_atlas, boolean has_color, BlendMode blend_mode) {
         if ((blend_mode != BlendMode.JUST_COLOR) && !has_atlas)
             throw new RuntimeException("[spdt/sprite] " +

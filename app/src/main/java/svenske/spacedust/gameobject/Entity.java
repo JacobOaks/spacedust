@@ -4,46 +4,58 @@ import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
 import svenske.spacedust.physics.PhysicsObject;
 
+/**
+ * An Entity is a game object with:
+ * - Physics capabilities (bounds)
+ * - Name (& a nameplate)
+ * - Health (& health regen)
+ * - Some particle emission capabilities
+ */
 public abstract class Entity extends GameObject implements PhysicsObject {
 
     // Basic Attributes
-    private String name;
-    private Plate nameplate;
+    private String name;     // Entity name
+    private Plate nameplate; // Nameplate shown above the entity
+    // Padding between the entity and its nameplate
     public static final float NAMEPLATE_PADDING = 0.08f;
 
-    // Object Creation & Deletion
-    protected ObjectCreator object_creator;
-    protected ObjectDeleter object_deleter;
+    // Reference to the world for creating/deleting objects
+    protected World world;
 
-    // HP
-    private float hp;
-    private float max_hp;
-    private float hp_regen_rate;
-    private float hp_regen_cooldown;
-    private float hp_regen_cooldown_timer;
+    // Health attributes
+    private float hp;                      // How much health does the entity have?
+    private float max_hp;                  // What's the entity's maximum possible health?
+    private float hp_regen_rate;           // How quickly does the entity regenerate health (hp/s)?
+    private float hp_regen_cooldown;       // How long after being damaged can the entity regen?
+    private float hp_regen_cooldown_timer; // Current timer for regen cooldown
 
-    // Particles TODO
+    // TODO: Particles
     // private ParticleSpawner death_particles; // TODO
     // private ParticleSpawner damaged_particles; // TODO
     // private ParticleSpawner movement_particles; // TODO
     // private float movement_particles_cooldown; // TODO
     // private float movement_particles_cooldown_timer; // TODO
 
-    public Entity(Sprite base_sprite, float x, float y, String name, float max_hp,
-                  float hp_regen_rate, float hp_regen_cooldown, ObjectCreator object_creator,
-                  ObjectDeleter object_deleter) {
-        super(base_sprite, x, y);
+    /**
+     * Constructs the Entity
+     * @param world a reference to the world which will be used to add objects (i.e., projectiles)
+     *              and remove them (i.e., projectiles or dead entities)
+     * The rest of the parameters are described in the superclass constructors or above in the
+     *              attributes declarations
+     */
+    public Entity(Sprite sprite, float x, float y, String name, float max_hp,
+                  float hp_regen_rate, float hp_regen_cooldown, World world) {
+        super(sprite, x, y);
 
         // Save basic entity info and set initial values
-        this.name = name;
-        this.max_hp = max_hp;
+        this.name              = name;
+        this.max_hp            = max_hp;
         this.set_health(this.max_hp);
-        this.hp_regen_rate = hp_regen_rate;
+        this.hp_regen_rate     = hp_regen_rate;
         this.hp_regen_cooldown = this.hp_regen_cooldown_timer = hp_regen_cooldown;
 
-        // Save references to object deleter and creator
-        this.object_creator = object_creator;
-        this.object_deleter = object_deleter;
+        // Save reference to world for obj creation/deletion
+        this.world = world;
 
         // TODO: save particles
 
@@ -52,14 +64,9 @@ public abstract class Entity extends GameObject implements PhysicsObject {
         this.update_plate_position();
     }
 
-    /**
-     * Updates the entity:
-     * - update position
-     * - update plate position
-     * - update the health regeneration counter, or regenerate health if cool-down over
-     */
+    // Updates the entity's position, nameplate, and health regen status
     @Override
-    void update(float dt) {
+    public void update(float dt) {
 
         // Update position and sprite
         super.update(dt);
@@ -67,24 +74,23 @@ public abstract class Entity extends GameObject implements PhysicsObject {
         // Update plate
         this.update_plate_position();
 
-        // Spawn movement particles TODO
+        // TODO: Update movement particles
 
-        // Update health
+        // Update health regeneration
         if (this.hp_regen_cooldown_timer > 0f) this.hp_regen_cooldown_timer -= dt;
         else this.heal(this.hp_regen_rate * dt);
     }
 
-    // Updates the ship's overhead health bar's position if there is one
+    // Updates the entity's overhead health bar's position if there is one
     private void update_plate_position() {
         if (this.nameplate != null) {
-            // TODO: can optimize by only updating if entity has moved
             float new_nameplate_y = (this.y + this.get_size()[1] / 2) +
                                     (this.nameplate.get_size()[1] / 2) + NAMEPLATE_PADDING;
             this.nameplate.set_pos(this.x, new_nameplate_y);
         }
     }
 
-    // Renders the ship and its plate if it has one
+    // Renders the entity and its plate if it has one
     @Override
     void render(ShaderProgram sp) {
         super.render(sp);
@@ -97,6 +103,7 @@ public abstract class Entity extends GameObject implements PhysicsObject {
         else {
             this.set_health(this.hp - hp);
             this.hp_regen_cooldown_timer = this.hp_regen_cooldown; // Reset regeneration counter
+            // TODO: Spawn damage particles
         }
     }
 
@@ -116,14 +123,15 @@ public abstract class Entity extends GameObject implements PhysicsObject {
 
     // Called when the entity dies. By default, just deletes the entity
     protected void died() {
-        this.object_deleter.on_object_delete(this);
+        this.world.on_object_delete(this);
+        // TODO: Spawn death particles
     }
 
     // Get entity's bounds
     @Override
     public float[] get_bounds() {
         // Entity bounds are defined by a circle with diameter equal to 9/10 of the sprite size
-        // Pretty import to define entities with this in mind (oblong entities should override this)
+        // Important to define entities with this in mind (oblong entities should override this)
         float[] size = this.get_size();
         return new float[] { this.x, this.y, size[0] * 0.45f };
     }

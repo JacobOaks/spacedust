@@ -19,9 +19,7 @@ public class TextSprite extends Sprite {
 
     protected String text; // The current text
 
-    /**
-     * Constructs the TextSprite using the given font, text color, blend mode, and starting text.
-     */
+    // Constructs the TextSprite using the given font, text color, blend mode, and starting text.
     public TextSprite(Font font, float[] color, BlendMode blend_mode, String text) {
 
         // Pass dummy values to super constructor for now

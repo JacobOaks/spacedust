@@ -24,26 +24,14 @@ import svenske.spacedust.graphics.Sprite;
  */
 public class GameObject {
 
-    /*
-     * An interface that should be implemented by the housing structure (world) to allow new objects
-     * to be produced by a GameObject that requires it
-     */
-    public interface ObjectCreator { void on_object_create(GameObject new_object); }
-
-    /**
-     * An interface that should be implemented by the housing structure (world) to allow objects to
-     * delete other objects from the World
-     */
-    public interface ObjectDeleter { void on_object_delete(GameObject to_delete); }
-
     // Attributes
-    protected Sprite sprite;
-    protected float x, y;
-    protected float sx, sy;
-    protected float vx, vy; // in units / second
-    protected float rot;    // in radians
+    protected Sprite sprite; // The GameObject's sprite
+    protected float x, y;    // The position of the GameObject
+    protected float sx, sy;  // The scale of the GameObject
+    protected float vx, vy;  // The velocity of the GameObject in units / second
+    protected float rot;     // The rotation of the GameObject in radians
 
-    // Constructs the GameObject with the given Sprite (can be null) and position.
+    // Constructs the GameObject with the given Sprite (may be null) and position.
     public GameObject(Sprite sprite, float x, float y) {
         this.sprite = sprite;
         this.x = x;
@@ -52,14 +40,14 @@ public class GameObject {
         this.vx = this.vy = 0f;
     }
 
-    // Updates the GameObject's Sprite if not null.
+    // Updates the GameObject's Sprite if not null, and the GameObject's position
     void update(float dt) {
         if (this.sprite != null) this.sprite.update(dt);
         this.x += this.vx * dt;
         this.y += this.vy * dt;
     }
 
-    // Renders the GameObject using the given ShaderProgram
+    // Renders the GameObject's sprite at its position using the given ShaderProgram
     void render(ShaderProgram sp) {
         if (this.sprite != null) this.sprite.render(sp, this.x, this.y, this.sx, this.sy, this.rot);
     }

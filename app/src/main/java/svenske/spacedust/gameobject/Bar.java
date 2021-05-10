@@ -26,10 +26,10 @@ public class Bar extends GameObject {
      * @param background_color the color for the background of the bar
      * @param sx the x-scale for the bar
      * @param sy the y-scale for the bar
-     * @param x the x-position for the bar
-     * @param y the y-position for the bar
+     * The rest of the arguments follow the superclass constructor
      */
-    public Bar(float[] full_color, float[] empty_color, float[] background_color, float sx, float sy, float x, float y) {
+    public Bar(float[] full_color, float[] empty_color, float[] background_color, float sx, float sy,
+               float x, float y) {
 
         // Initialize background and superclass
         super(new Sprite(null, -1, -1, background_color,

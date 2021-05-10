@@ -30,23 +30,22 @@ import static svenske.spacedust.gameobject.HUD.Alignment.LEFT;
 public class WorldStage implements Stage {
 
     // WorldStage attributes
-    public static TextureAtlas ship_ta;  // TextureAtlas containing ship textures
-    World world;                         // The world
-    HUD hud;                             // The HUD
+    World world;
+    HUD hud;
 
     // Important GameObjects
     Player player;                       // Reference to the game's player
     Bar player_hp_bar;                   // Player's health bar on the HUD
     GameObject FPS_text;                 // FPS text on the HUD
-    public static GameObject enemy_text; // Text displaying how many enemies there are on HUD
-    public static GameObject kills_text; // Text displaying how many kills there have been on HUD
+    public static GameObject score_text; // Text displaying how the current score
 
     // Creates the World and the HUD of the WorldStage as well as its starting GameObjects.
     @Override
     public void init(Node previous_continuous_data) {
 
-        // Initialize global font
+        // Initialize global texture atlases
         Global.font = new Font(R.drawable.font, R.raw.font_info);
+        Global.ta = new TextureAtlas(R.drawable.texture_sheet, 16, 16);
 
         // Initialize world and HUD
         this.world = new World(previous_continuous_data);
@@ -73,8 +72,7 @@ public class WorldStage implements Stage {
                 0.1f);
 
         // Create player
-        WorldStage.ship_ta = new TextureAtlas(R.drawable.texture_sheet, 16, 16);
-        this.player = new Player(WorldStage.ship_ta,0f, 0f, this.player_hp_bar, this.world);
+        this.player = new Player(Global.ta,0f, 0f, this.player_hp_bar, this.world);
         this.world.add_game_object(this.player);
     }
 
@@ -126,21 +124,13 @@ public class WorldStage implements Stage {
         this.hud.add_object(FPS_text,
                 version_text, HUD.RelativePlacement.BELOW, LEFT, 0.05f);
 
-        // Create enemies text
-        Sprite enemies_text_sprite = new TextSprite(Global.font, new float[] { 1f, 0f, 0f, 0.8f },
-                BlendMode.MULTIPLICATIVE, "Enemies: 0");
-        WorldStage.enemy_text = new GameObject(enemies_text_sprite, 0f, 0f);
-        WorldStage.enemy_text.set_scale(0.06f, 0.06f);
-        this.hud.add_object(WorldStage.enemy_text,
-                this.FPS_text, HUD.RelativePlacement.BELOW, LEFT, 0.05f);
-
         // Create kills text
-        Sprite kills_text_sprite = new TextSprite(Global.font, new float[] { 0f, 1f, 0f, 0.8f },
-                BlendMode.MULTIPLICATIVE, "Kills: 0");
-        WorldStage.kills_text = new GameObject(kills_text_sprite, 0f, 0f);
-        WorldStage.kills_text.set_scale(0.06f, 0.06f);
-        this.hud.add_object(WorldStage.kills_text,
-                WorldStage.enemy_text, HUD.RelativePlacement.BELOW, LEFT, 0.03f);
+        Sprite score_text_sprite = new TextSprite(Global.font, new float[] { 0f, 1f, 0f, 0.8f },
+                BlendMode.MULTIPLICATIVE, "Score: 0");
+        WorldStage.score_text = new GameObject(score_text_sprite, 0f, 0f);
+        WorldStage.score_text.set_scale(0.06f, 0.06f);
+        this.hud.add_object(WorldStage.score_text,
+                this.FPS_text, HUD.RelativePlacement.BELOW, LEFT, 0.03f);
     }
 
     // Responds to input by allowing the HUD and the World to respond to it.
