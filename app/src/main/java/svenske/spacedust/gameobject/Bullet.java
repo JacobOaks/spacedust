@@ -8,8 +8,8 @@ import svenske.spacedust.physics.PhysicsObject;
 /**
  * A bullet:
  * - emits a small light
- * - deletes itself when colliding into a target ship
- * - deals damage to a target ship it collides into
+ * - deletes itself when colliding into a target entity
+ * - deals damage to a target entity it collides into
  * - moves at a specified speed in a specified direction
  */
 public class Bullet extends GameObject implements LightEmitter, PhysicsObject {
@@ -59,12 +59,16 @@ public class Bullet extends GameObject implements LightEmitter, PhysicsObject {
     @Override
     public void on_collide(PhysicsObject other) {
         if (other instanceof Player && this.hostile) {       // Enemy bullet hits player
-            ((Player)other).deal_damage(this.damage);
-            this.deleter.on_object_delete(this);
-        } else if (other instanceof Enemy && !this.hostile) { // Player bullet hits enemy
-            ((Enemy)other).deal_damage(this.damage);
+            ((Player)other).damage(this.damage);
             this.deleter.on_object_delete(this);
         }
+
+        /* TODO
+        else if (other instanceof Enemy && !this.hostile) { // Player bullet hits enemy
+            ((Enemy)other).damage(this.damage);
+            this.deleter.on_object_delete(this);
+        }
+        */
     }
 
     // Return the bullet's light source

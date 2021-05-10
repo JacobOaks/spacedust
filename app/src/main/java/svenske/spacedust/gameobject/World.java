@@ -11,11 +11,9 @@ import svenske.spacedust.graphics.BlendMode;
 import svenske.spacedust.graphics.Camera;
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
-import svenske.spacedust.graphics.TextSprite;
 import svenske.spacedust.graphics.TextureAtlas;
 import svenske.spacedust.physics.PhysicsEngine;
 import svenske.spacedust.physics.PhysicsObject;
-import svenske.spacedust.stages.WorldStage;
 import svenske.spacedust.utils.Global;
 import svenske.spacedust.utils.Node;
 
@@ -117,8 +115,8 @@ public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter
             this.manage_bullets();
         }
 
-        // Enemy spawning
-        this.enemy_spawn_timer -= dt;
+        // Enemy spawning TODO
+        /* this.enemy_spawn_timer -= dt;
         if (this.enemy_spawn_timer < 0f) {
             this.enemy_spawn_timer += this.enemy_spawn_cooldown;
             if (this.current_enemies < this.max_enemies) { // Spawn new enemy
@@ -133,6 +131,7 @@ public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter
                 this.add_game_object(e);
             }
         }
+         */
     }
 
     // Dynamically manage bullets in the world (remove them if too far away)
@@ -215,11 +214,13 @@ public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter
         this.world_objects.add(go);      // Add to list of game objects
         if (go instanceof PhysicsObject) // Add to sublist of physics objects if it is one
             this.physics_objects.add((PhysicsObject)go);
+        /* TODO
         if (go instanceof Enemy) {
             this.current_enemies += 1;
             ((TextSprite) WorldStage.enemy_text.get_sprite()).set_text("Enemies: " +
                     this.current_enemies);
         }
+        */
         if (go instanceof Player) this.player = (Player)go;
     }
 
@@ -229,6 +230,7 @@ public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter
         if (!removed)
             Log.e("spdt/world", "attempted to remove an object not present in the World");
         if (go instanceof PhysicsObject) this.physics_objects.remove(go);
+        /* TODO
         if (go instanceof Enemy) {
             this.current_enemies -= 1;
             this.killed_enemies += 1;
@@ -237,6 +239,7 @@ public class World implements GameObject.ObjectCreator, GameObject.ObjectDeleter
             ((TextSprite) WorldStage.kills_text.get_sprite()).set_text("Kills: " +
                     this.killed_enemies);
         }
+         */
     }
 
     // Responds to newly produced objects by adding them to the world

@@ -86,7 +86,7 @@ public class PhysicsEngine {
             /**
              * IMPORTANT ASSUMPTION:
              * All of our objects will have size smaller than the size of the padding included in
-             * the scope. In other words e will ONLY have objects small enough such that they will
+             * the scope. In other words we will ONLY have objects small enough such that they will
              * never be in the camera's view but not in the PhysicsEngine's scope.
              */
 

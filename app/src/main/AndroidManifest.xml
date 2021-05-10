@@ -16,7 +16,9 @@
         android:theme="@style/Theme.SpaceDust">
 
         <!-- List all activities in the app -->
-        <activity android:name=".GameActivity">
+        <activity android:name=".GameActivity"
+            android:screenOrientation="landscape"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

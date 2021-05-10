@@ -35,7 +35,7 @@ public class Bar extends GameObject {
         super(new Sprite(null, -1, -1, background_color,
                 BlendMode.JUST_COLOR, null, null), x, y);
 
-        // Initialze foreground sprite
+        // Initialize foreground sprite
         this.foreground = new Sprite(null, -1, -1, full_color,
                 BlendMode.JUST_COLOR, null, null);
 

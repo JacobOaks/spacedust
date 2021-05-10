@@ -8,7 +8,6 @@ import java.util.List;
 
 import svenske.spacedust.R;
 import svenske.spacedust.gameobject.Bar;
-import svenske.spacedust.gameobject.Enemy;
 import svenske.spacedust.gameobject.GameObject;
 import svenske.spacedust.gameobject.HUD;
 import svenske.spacedust.gameobject.JoyStick;
@@ -42,16 +41,18 @@ public class WorldStage implements Stage {
     public static GameObject enemy_text; // Text displaying how many enemies there are on HUD
     public static GameObject kills_text; // Text displaying how many kills there have been on HUD
 
-    // Create's the World and the HUD of the WorldStage as well as its starting GameObjects.
+    // Creates the World and the HUD of the WorldStage as well as its starting GameObjects.
     @Override
     public void init(Node previous_continuous_data) {
+
+        // Initialize global font
+        Global.font = new Font(R.drawable.font, R.raw.font_info);
 
         // Initialize world and HUD
         this.world = new World(previous_continuous_data);
         this.world.get_camera().set_zoom(0.25f);
         this.hud = new HUD();
 
-        // TODO: need to reposition on resize
         // Create objects
         this.create_player();
         this.create_joysticks();
@@ -99,22 +100,17 @@ public class WorldStage implements Stage {
     private void create_text() {
 
         // Create title
-        Font font = new Font(R.drawable.font, R.raw.font_info);
-        Sprite title_sprite = new TextSprite(font, new float[] { 1f, 1f, 1f, 1f },
+        Sprite title_sprite = new TextSprite(Global.font, new float[] { 1f, 1f, 1f, 1f },
                 BlendMode.MULTIPLICATIVE, "Space Dust").solidify();
         title_sprite.set_color(new float[] { 1f, 1f, 1f, 0.6f });
         title_sprite.set_blend_mode(BlendMode.MULTIPLICATIVE);
         GameObject title = new GameObject(title_sprite, 0f, 0f);
         title.set_scale(0.14f, 0.14f);
-        this.hud.add_object(title,
-                // If landscape, place on top-left screen edge. If portrait, place below HP bar
-                ((float) Global.VIEWPORT_WIDTH / (float) Global.VIEWPORT_HEIGHT) >= 1.0f ?
-                        this.player_hp_bar : null,
-                HUD.RelativePlacement.BELOW, LEFT, 0.05f);
+        this.hud.add_object(title, null, HUD.RelativePlacement.BELOW, LEFT, 0.05f);
 
         // Create version info
-        Sprite version_sprite = new TextSprite(font, new float[] { 1f, 1f, 1f, 1f },
-                BlendMode.MULTIPLICATIVE, "(prototype 1)").solidify();
+        Sprite version_sprite = new TextSprite(Global.font, new float[] { 1f, 1f, 1f, 1f },
+                BlendMode.MULTIPLICATIVE, "(prototype 2)").solidify();
         version_sprite.set_color(new float[] { 1f, 1f, 1f, 0.6f });
         version_sprite.set_blend_mode(BlendMode.MULTIPLICATIVE);
         GameObject version_text = new GameObject(version_sprite, 0f, 0f);
@@ -123,7 +119,7 @@ public class WorldStage implements Stage {
                 title, HUD.RelativePlacement.BELOW, LEFT, 0.03f);
 
         // Create FPS text
-        Sprite fps_text_sprite = new TextSprite(font, new float[] { 1f, 1f, 1f, 0.6f },
+        Sprite fps_text_sprite = new TextSprite(Global.font, new float[] { 1f, 1f, 1f, 0.6f },
                 BlendMode.MULTIPLICATIVE, "FPS: ");
         this.FPS_text = new GameObject(fps_text_sprite, 0f,0f);
         this.FPS_text.set_scale(0.07f, 0.07f);
@@ -131,7 +127,7 @@ public class WorldStage implements Stage {
                 version_text, HUD.RelativePlacement.BELOW, LEFT, 0.05f);
 
         // Create enemies text
-        Sprite enemies_text_sprite = new TextSprite(font, new float[] { 1f, 0f, 0f, 0.8f },
+        Sprite enemies_text_sprite = new TextSprite(Global.font, new float[] { 1f, 0f, 0f, 0.8f },
                 BlendMode.MULTIPLICATIVE, "Enemies: 0");
         WorldStage.enemy_text = new GameObject(enemies_text_sprite, 0f, 0f);
         WorldStage.enemy_text.set_scale(0.06f, 0.06f);
@@ -139,7 +135,7 @@ public class WorldStage implements Stage {
                 this.FPS_text, HUD.RelativePlacement.BELOW, LEFT, 0.05f);
 
         // Create kills text
-        Sprite kills_text_sprite = new TextSprite(font, new float[] { 0f, 1f, 0f, 0.8f },
+        Sprite kills_text_sprite = new TextSprite(Global.font, new float[] { 0f, 1f, 0f, 0.8f },
                 BlendMode.MULTIPLICATIVE, "Kills: 0");
         WorldStage.kills_text = new GameObject(kills_text_sprite, 0f, 0f);
         WorldStage.kills_text.set_scale(0.06f, 0.06f);

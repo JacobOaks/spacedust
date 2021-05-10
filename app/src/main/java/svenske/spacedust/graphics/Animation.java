@@ -2,10 +2,35 @@ package svenske.spacedust.graphics;
 
 import android.util.Log;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * An encapsulation for customizable animation data.
  */
 public class Animation {
+
+    // Static method to get standard animations for ships
+    public static Map<String, Animation> get_generic_ship_animations(int idle_atlas_row) {
+        Map<String, Animation> anims = new HashMap<>();
+
+        // Idle animation
+        Animation idle = new Animation(0.1f, 12, new int[] { idle_atlas_row },
+                new int[] { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2 }, new float[][] { null },
+                new BlendMode[] { BlendMode.JUST_TEXTURE });
+        anims.put("idle", idle);
+
+        // Engines animation
+        Animation engines = new Animation(0.1f, 12, new int[] { idle_atlas_row + 1 },
+                new int[] { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2 }, new float[][] { null },
+                new BlendMode[] { BlendMode.JUST_TEXTURE });
+        anims.put("thrust", engines);
+
+        return anims;
+    }
+
+    // Constant describing the interval at which the generic ship animation has its lights on
+    public static final int GENERIC_SHIP_ANIMATION_LIGHT_INTERVAL = 6;
 
     // Animation attributes
     public float frame_time;
@@ -54,7 +79,7 @@ public class Animation {
             boolean has_color = this.colors[i % this.colors.length] != null;
             boolean has_atlas = this.atlas_cols[i % this.atlas_cols.length] != -1;
             has_atlas = has_atlas && this.atlas_rows[i % this.atlas_rows.length] != -1;
-            Sprite.check_blend_mode(true, has_color, this.blend_modes[
+            Sprite.check_blend_mode(has_atlas, has_color, this.blend_modes[
                     i % this.blend_modes.length]);
         }
     }

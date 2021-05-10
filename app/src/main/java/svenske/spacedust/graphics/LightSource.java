@@ -1,20 +1,25 @@
 package svenske.spacedust.graphics;
 
-// TODO: Document and support
-
 import android.util.Log;
 
+/**
+ * Represents a light source used in shader programs for lighting calculations
+ */
 public class LightSource {
 
-    private float glow[];
-    private float intensity;
-    private float reach;
-
+    // Attributes
+    private float glow[];    // The color of the light source
+    private float intensity; // How intense the light source is
+    private float reach;     // How far reaching the light source is
+    // Flicker provides a way for the light to randomly dim/enlighten quickly and erratically
     // 3 values: [min_reach, max_reach, reach_change_rate (units/second)]
     private float flicker[];
 
+    /**
+     * Constructs the LightSource by providing each attribute as detailed above
+     */
     public LightSource(float[] glow, float intensity, float reach, float[] flicker) {
-        if (glow == null | glow.length != 3)
+        if (glow == null || glow.length != 3)
             throw new RuntimeException("[spdt/lightsource] " +
                     "light glow must be length 3.");
         this.glow = glow;
