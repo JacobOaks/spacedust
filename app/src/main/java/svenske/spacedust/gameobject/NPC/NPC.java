@@ -5,6 +5,7 @@ import svenske.spacedust.gameobject.GameObject;
 import svenske.spacedust.gameobject.World;
 import svenske.spacedust.graphics.Sprite;
 import svenske.spacedust.physics.PhysicsObject;
+import svenske.spacedust.utils.Global;
 
 /**
  * An NPC is a hostile entity that:
@@ -14,8 +15,8 @@ import svenske.spacedust.physics.PhysicsObject;
 public abstract class NPC extends Entity {
 
     // Attributes
-    private float speed;       // Maximum combined speed of the NPC
-    private GameObject target; // A target
+    private float speed;         // Maximum combined speed of the NPC
+    protected GameObject target; // A target
 
     /**
      * Constructs the NPC
@@ -29,12 +30,14 @@ public abstract class NPC extends Entity {
         this.speed = speed;
     }
 
-    // Gets the rotation from the NPC to its target
-    protected float get_target_dir() {
-        float[] target_pos = this.target.get_pos();
-        float dx = target_pos[0] - this.x;
-        float dy = target_pos[1] - this.y;
-        return (float)Math.atan2(dy, dx);
+    /**
+     * @return a length-2 float array where the first float is direction to the NPC's target (in
+     * radians), and the second float is the distance to the target. If the NPC has no target, null
+     * will be returned
+     */
+    protected float[] get_target_info() {
+        if (this.target == null) return null;
+        else return Global.get_vector_info(this.get_pos(), this.target.get_pos());
     }
 
     /**
@@ -44,15 +47,12 @@ public abstract class NPC extends Entity {
      * @param rotate whether to also face the NPC in the direction of travel
      */
     public void set_movement_direction(float dir, float speed_multiplier, boolean rotate) {
-        this.vx = (float)Math.cos(dir + Math.PI / 2) * speed_multiplier * this.speed;
-        this.vy = (float)Math.sin(dir + Math.PI / 2) * speed_multiplier * this.speed;
+        float vx = (float)Math.cos(dir + Math.PI / 2) * speed_multiplier * this.speed;
+        float vy = (float)Math.sin(dir + Math.PI / 2) * speed_multiplier * this.speed;
+        this.set_velocity(vx, vy);
         if (rotate) this.rot = dir;
     }
 
-    // NPC projectile collision handled in projectile collision method
-    @Override
-    public void on_collide(PhysicsObject other) {}
-
     // Sets the NPC's target
-    public void set_target(GameObject target) { this.target = target; }
+    public NPC set_target(GameObject target) { this.target = target; return this; }
 }

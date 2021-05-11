@@ -2,7 +2,9 @@ package svenske.spacedust.gameobject;
 
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
+import svenske.spacedust.physics.PhysicsEngine;
 import svenske.spacedust.physics.PhysicsObject;
+import svenske.spacedust.utils.Global;
 
 /**
  * An Entity is a game object with:
@@ -14,10 +16,11 @@ import svenske.spacedust.physics.PhysicsObject;
 public abstract class Entity extends GameObject implements PhysicsObject {
 
     // Basic Attributes
-    private String name;     // Entity name
-    private Plate nameplate; // Nameplate shown above the entity
+    private String name;      // Entity name
+    private Plate nameplate;  // Nameplate shown above the entity
     // Padding between the entity and its nameplate
     public static final float NAMEPLATE_PADDING = 0.08f;
+    private float kb_x, kb_y; // Knockback x and y
 
     // Reference to the world for creating/deleting objects
     protected World world;
@@ -70,6 +73,7 @@ public abstract class Entity extends GameObject implements PhysicsObject {
 
         // Update position and sprite
         super.update(dt);
+        this.update_knockback(dt);
 
         // Update plate
         this.update_plate_position();
@@ -79,6 +83,14 @@ public abstract class Entity extends GameObject implements PhysicsObject {
         // Update health regeneration
         if (this.hp_regen_cooldown_timer > 0f) this.hp_regen_cooldown_timer -= dt;
         else this.heal(this.hp_regen_rate * dt);
+    }
+
+    // Applies knock-back to entity's position and degrades the effects of knockback over time
+    private void update_knockback(float dt) {
+        this.x += this.kb_x * dt;
+        this.y += this.kb_y * dt;
+        this.kb_x *= 0.98f;
+        this.kb_y *= 0.98f;
     }
 
     // Updates the entity's overhead health bar's position if there is one
@@ -125,6 +137,23 @@ public abstract class Entity extends GameObject implements PhysicsObject {
     protected void died() {
         this.world.on_object_delete(this);
         // TODO: Spawn death particles
+    }
+
+    // Handles collision with other entities
+    @Override
+    public void on_collide(PhysicsObject other) {
+        if (other instanceof Entity) {
+
+            // Damage this entity for crashing
+            this.damage(0.05f);
+
+            // Apply some knockback on both entities
+            Entity e = (Entity)other;
+            float dir = Global.get_vector_info(e.get_pos(), this.get_pos())[0];
+            float v = e.get_full_v();
+            this.kb_x = v * (float)Math.cos(dir + Math.PI / 2);
+            this.kb_y = v * (float)Math.sin(dir + Math.PI / 2);
+        }
     }
 
     // Get entity's bounds

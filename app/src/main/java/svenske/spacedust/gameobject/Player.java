@@ -137,10 +137,6 @@ public class Player extends Entity implements JoyStick.JoystickReceiver,
         }
     }
 
-    // Player projectile interaction handled in projectile collision method
-    @Override
-    public void on_collide(PhysicsObject other) {}
-
     // Responds to frame changes by setting adjusting the player's light source
     @Override
     public void on_frame_change(int new_frame) {

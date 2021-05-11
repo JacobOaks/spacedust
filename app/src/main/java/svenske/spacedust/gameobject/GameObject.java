@@ -73,6 +73,9 @@ public class GameObject {
     // Return the GameObject's current position
     public float[] get_pos() { return new float[] { this.x, this.y }; }
 
+    // Return the GameObject's full velocity
+    public float get_full_v() { return (float)Math.sqrt((this.vx * this.vx) + (this.vy * this.vy)); }
+
     /**
      * @return the GameObject's size.
      *

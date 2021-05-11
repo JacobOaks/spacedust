@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import svenske.spacedust.graphics.Camera;
+import svenske.spacedust.utils.Global;
 
 /**
  * Detects and handles physics between PhysicsObjects. Important notes/assumptions:
@@ -57,7 +58,8 @@ public class PhysicsEngine {
             for (int j = i + 1; j < relevant_objects.size(); j++) {
 
                 // If they are colliding, call their on_collide methods
-                if (are_colliding(bounds_a, relevant_objects.get(j).get_bounds())) {
+                float[] bounds_b = relevant_objects.get(j).get_bounds();
+                if (are_colliding(bounds_a, bounds_b)) {
                     relevant_objects.get(i).on_collide(relevant_objects.get(j));
                     relevant_objects.get(j).on_collide(relevant_objects.get(i));
                 }
@@ -103,7 +105,7 @@ public class PhysicsEngine {
     }
 
     // Check if the two given bounds are colliding
-    private boolean are_colliding(float[] bounds_a, float[] bounds_b) {
+    public static boolean are_colliding(float[] bounds_a, float[] bounds_b) {
         if (bounds_a.length == 4 && bounds_b.length == 4)      // Rectangle-rectangle collision
             return are_colliding_recs(bounds_a, bounds_b);
         else if (bounds_a.length == 3 && bounds_b.length == 3) // Circle-circle collision
@@ -120,7 +122,7 @@ public class PhysicsEngine {
     }
 
     // Check for collision between two rectangular bounds
-    public boolean are_colliding_recs(float[] bounds_a, float[] bounds_b) {
+    public static boolean are_colliding_recs(float[] bounds_a, float[] bounds_b) {
 
         // Standard AABB collision check
         return  bounds_a[0] < bounds_b[0] + bounds_b[2] &&
@@ -130,7 +132,7 @@ public class PhysicsEngine {
     }
 
     // Check for collision between two circle bounds
-    public boolean are_colliding_circles(float[] bounds_a, float[] bounds_b) {
+    public static boolean are_colliding_circles(float[] bounds_a, float[] bounds_b) {
 
         // Calculate distance between center of circles
         float dx = bounds_a[0] - bounds_b[0];
@@ -138,17 +140,12 @@ public class PhysicsEngine {
         float d = (float)Math.sqrt((dx * dx) + (dy * dy));
 
         // If the distance is less than the sum of their radii, collision is occurring
-        if (d <= (bounds_a[2] + bounds_b[2])) {
-            Log.d("[spdt/physicsengine]", "d: " + d);
-            Log.d("[spdt/physicsengine]", "bounds_a: " + Arrays.toString(bounds_a));
-            Log.d("[spdt/physicsengine]", "bounds_b: " + Arrays.toString(bounds_b));
-            return true;
-        }
+        if (d <= (bounds_a[2] + bounds_b[2]))  return true;
         return false;
     }
 
     // Check for collision between rectangle bounds and circle bounds
-    public boolean are_colliding_rec_circle(float[] bounds_rec, float[] bounds_circle) {
+    public static boolean are_colliding_rec_circle(float[] bounds_rec, float[] bounds_circle) {
 
         // Calculate half-width and half-height of rectangle
         float rb_hw = bounds_rec[2] / 2;

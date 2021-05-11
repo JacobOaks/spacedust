@@ -7,6 +7,7 @@ import svenske.spacedust.graphics.AnimatedSprite;
 import svenske.spacedust.graphics.Animation;
 import svenske.spacedust.graphics.LightSource;
 import svenske.spacedust.graphics.TextureAtlas;
+import svenske.spacedust.utils.Global;
 
 // TODO: ship particles
 
@@ -28,15 +29,14 @@ public class Ship extends NPC implements AnimatedSprite.FrameChangeCallback, Lig
 
     /**
      * Constructs the ship
-     * @param atlas the atlas containing the ship textures
      * @param atlas_row the row of the idle animation for the ship desired
      * @param speed the speed of the ship
      * The rest of the arguments follow superclass constructors
      */
-    public Ship(TextureAtlas atlas, int atlas_row, float x, float y, World world, float speed,
+    public Ship(int atlas_row, float x, float y, World world, float speed,
                 String name, float max_hp, float hp_regen_rate, float hp_regen_cooldown,
                 float bullet_accuracy, float bullet_speed, float bullet_damage) {
-        super(new AnimatedSprite(atlas, Animation.get_generic_ship_animations(atlas_row),
+        super(new AnimatedSprite(Global.ta, Animation.get_generic_ship_animations(atlas_row),
                         "idle", null, null), x, y, speed, name,
                 max_hp, hp_regen_rate, hp_regen_cooldown, world);
         ((AnimatedSprite)this.sprite).set_frame_change_callback(this);

@@ -16,4 +16,15 @@ public class Global {
     // Width and height of the viewport (in pixels)
     public static int VIEWPORT_WIDTH = 0;
     public static int VIEWPORT_HEIGHT = 0;
+
+    /**
+     * @return a length-2 float array where the first float is direction from pos1 to pos2 (in
+     * radians), and the second float is the distance between the two points.
+     */
+    public static float[] get_vector_info(float[] pos1, float[] pos2) {
+        float dx = pos2[0] - pos1[0];
+        float dy = pos2[1] - pos1[1];
+        float d = (float)Math.sqrt((dx * dx) + (dy * dy));
+        return new float[] { (float)Math.atan2(dy, dx) - (float)(Math.PI / 2f), d };
+    }
 }

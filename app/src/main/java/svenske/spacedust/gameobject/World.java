@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import svenske.spacedust.R;
+import svenske.spacedust.gameobject.NPC.Marauder;
 import svenske.spacedust.gameobject.NPC.NPC;
 import svenske.spacedust.gameobject.NPC.Ship;
 import svenske.spacedust.graphics.BlendMode;
@@ -83,12 +84,6 @@ public class World {
                 new float[] { 0.1f, 0f, 0.1f, 1f }, BlendMode.AVG, null, null);
         this.background = new GameObject(background_sprite, 0f, 0f);
         this.background.set_scale(WORLD_WIDTH, WORLD_HEIGHT);
-
-        // Create dummy enemy
-        Ship enemy = new Ship(Global.ta, 2, 3f, 3f, this, 4f,
-                "Enemy Ship", 10f, 1f, 5f, 0.9f,
-                5f, 0.2f);
-        this.add_game_object(enemy);
 
         // TODO: Restore state
         if (continuous_data !=  null) {}
@@ -227,7 +222,20 @@ public class World {
         this.world_objects.add(go);      // Add to list of game objects
         if (go instanceof PhysicsObject) // Add to sublist of physics objects if it is one
             this.physics_objects.add((PhysicsObject)go);
-        if (go instanceof Player) this.player = (Player)go;
+        if (go instanceof Player) {
+            this.player = (Player)go;
+            this.add_game_object(new Marauder(-5f, 5f, this).set_target(this.player));
+            this.add_game_object(new Marauder(-4f, 5f, this).set_target(this.player));
+            this.add_game_object(new Marauder(-3f, 5f, this).set_target(this.player));
+            this.add_game_object(new Marauder(-2f, 5f, this).set_target(this.player));
+            this.add_game_object(new Marauder(-1f, 5f, this).set_target(this.player));
+            this.add_game_object(new Marauder(0f, 5f, this).set_target(this.player));
+            this.add_game_object(new Marauder(5f, 5f, this).set_target(this.player));
+            this.add_game_object(new Marauder(4f, 5f, this).set_target(this.player));
+            this.add_game_object(new Marauder(3f, 5f, this).set_target(this.player));
+            this.add_game_object(new Marauder(2f, 5f, this).set_target(this.player));
+            this.add_game_object(new Marauder(1f, 5f, this).set_target(this.player));
+        }
     }
 
     // Remove a GameObject from the World
