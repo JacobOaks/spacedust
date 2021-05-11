@@ -1,13 +1,10 @@
 package svenske.spacedust.physics;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import svenske.spacedust.graphics.Camera;
-import svenske.spacedust.utils.Global;
 
 /**
  * Detects and handles physics between PhysicsObjects. Important notes/assumptions:

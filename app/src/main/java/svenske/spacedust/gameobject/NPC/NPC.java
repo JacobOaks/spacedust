@@ -4,7 +4,6 @@ import svenske.spacedust.gameobject.Entity;
 import svenske.spacedust.gameobject.GameObject;
 import svenske.spacedust.gameobject.World;
 import svenske.spacedust.graphics.Sprite;
-import svenske.spacedust.physics.PhysicsObject;
 import svenske.spacedust.utils.Global;
 
 /**

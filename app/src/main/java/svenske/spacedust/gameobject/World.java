@@ -8,17 +8,14 @@ import java.util.List;
 
 import svenske.spacedust.R;
 import svenske.spacedust.gameobject.NPC.Marauder;
-import svenske.spacedust.gameobject.NPC.NPC;
-import svenske.spacedust.gameobject.NPC.Ship;
+import svenske.spacedust.gameobject.NPC.Sniper;
 import svenske.spacedust.graphics.BlendMode;
 import svenske.spacedust.graphics.Camera;
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
-import svenske.spacedust.graphics.TextSprite;
 import svenske.spacedust.graphics.TextureAtlas;
 import svenske.spacedust.physics.PhysicsEngine;
 import svenske.spacedust.physics.PhysicsObject;
-import svenske.spacedust.stages.WorldStage;
 import svenske.spacedust.utils.Global;
 import svenske.spacedust.utils.Node;
 
@@ -224,17 +221,12 @@ public class World {
             this.physics_objects.add((PhysicsObject)go);
         if (go instanceof Player) {
             this.player = (Player)go;
-            this.add_game_object(new Marauder(-5f, 5f, this).set_target(this.player));
-            this.add_game_object(new Marauder(-4f, 5f, this).set_target(this.player));
-            this.add_game_object(new Marauder(-3f, 5f, this).set_target(this.player));
-            this.add_game_object(new Marauder(-2f, 5f, this).set_target(this.player));
+            this.add_game_object(new Sniper(-5f, 5f, this).set_target(this.player));
+            this.add_game_object(new Sniper(-3f, 5f, this).set_target(this.player));
+            this.add_game_object(new Sniper(3f, 5f, this).set_target(this.player));
             this.add_game_object(new Marauder(-1f, 5f, this).set_target(this.player));
-            this.add_game_object(new Marauder(0f, 5f, this).set_target(this.player));
-            this.add_game_object(new Marauder(5f, 5f, this).set_target(this.player));
-            this.add_game_object(new Marauder(4f, 5f, this).set_target(this.player));
-            this.add_game_object(new Marauder(3f, 5f, this).set_target(this.player));
-            this.add_game_object(new Marauder(2f, 5f, this).set_target(this.player));
             this.add_game_object(new Marauder(1f, 5f, this).set_target(this.player));
+            this.add_game_object(new Marauder(5f, 5f, this).set_target(this.player));
         }
     }
 

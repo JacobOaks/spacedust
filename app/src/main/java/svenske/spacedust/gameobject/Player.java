@@ -4,7 +4,6 @@ import svenske.spacedust.graphics.AnimatedSprite;
 import svenske.spacedust.graphics.Animation;
 import svenske.spacedust.graphics.LightSource;
 import svenske.spacedust.graphics.TextureAtlas;
-import svenske.spacedust.physics.PhysicsObject;
 
 // TODO: set particles
 
@@ -16,6 +15,13 @@ import svenske.spacedust.physics.PhysicsObject;
 public class Player extends Entity implements JoyStick.JoystickReceiver,
         AnimatedSprite.FrameChangeCallback, LightEmitter {
 
+    // Player skill and behavior settings
+    public static final float PLAYER_BULLET_SPEED    = 16f;
+    public static final float PLAYER_BULLET_DAMAGE   = 1.5f;
+    public static final float PLAYER_BULLET_ACCURACY = 0.95f;
+    public static final float PLAYER_SHOOT_COOLDOWN  = 0.35f;
+    public static final int   PLAYER_LIGHT_INTERVAL  = 6;
+
     // Movement info
     private float ax, ay;                   // Current player acceleration
     private float acceleration_angle;       // Current angle of acceleration (angle of left joystick)
@@ -24,10 +30,6 @@ public class Player extends Entity implements JoyStick.JoystickReceiver,
     protected boolean accelerating = false; // Flag denoting whether the player is accelerating
 
     // Shooting info
-    protected float bullet_speed            = 16f;   // Bullet speed (units/s)
-    protected float bullet_damage           = 1.0f;  // Bullet damage
-    protected float shooting_accuracy       = 0.95f; // 0 - random bullet dir; 1 - perfect bullet dir;
-    protected float shooting_cooldown       = 0.4f;  // Minimum time in between shots
     protected float shooting_cooldown_timer = 0.0f;  // Timer for shooting
     private boolean shooting; // Whether player is currently shooting (right joystick in use)
 
@@ -44,7 +46,8 @@ public class Player extends Entity implements JoyStick.JoystickReceiver,
     public Player(TextureAtlas atlas, float x, float y, Bar hp_bar, World world) {
 
         // Call super, setup animation and sprite
-        super(new AnimatedSprite(atlas, Animation.get_generic_ship_animations(0),
+        super(new AnimatedSprite(atlas,
+                Animation.get_generic_ship_animations(0, PLAYER_LIGHT_INTERVAL),
                 "idle", null, null), x, y, "Player",
                 20f, 1f, 5f, world);
         ((AnimatedSprite)this.sprite).set_frame_change_callback(this);
@@ -107,16 +110,16 @@ public class Player extends Entity implements JoyStick.JoystickReceiver,
 
         // Make sure cool-down is over and reset it if it is
         if (this.shooting_cooldown_timer > 0f) return;
-        this.shooting_cooldown_timer = this.shooting_cooldown;
+        this.shooting_cooldown_timer = Player.PLAYER_SHOOT_COOLDOWN;
 
         // Figure out an accuracy offset
-        float max_offset = (float)Math.PI *  (1f - this.shooting_accuracy);
+        float max_offset = (float)Math.PI *  (1f - Player.PLAYER_BULLET_ACCURACY);
         float offset = (float)Math.random() * 2 * max_offset - max_offset;
 
         // Create bullet
         Projectile b = Projectile.create_bullet(new float[] { 0.5f, 0.5f, 0.5f, 1f }, this.x, this.y,
-                this.rot + offset, this.bullet_speed, this.world, false,
-                this.bullet_damage);
+                this.rot + offset, Player.PLAYER_BULLET_SPEED, this.world, false,
+                Player.PLAYER_BULLET_DAMAGE);
         this.world.on_object_create(b);
     }
 
@@ -147,7 +150,7 @@ public class Player extends Entity implements JoyStick.JoystickReceiver,
         float[] glow = new float[] { 0f, 0f, 0f };
 
         // If light is on in Sprite, add a little yellow light
-        if ((new_frame + 1) % Animation.GENERIC_SHIP_ANIMATION_LIGHT_INTERVAL == 0) {
+        if ((new_frame + 1) % PLAYER_LIGHT_INTERVAL == 0) {
             reach += 0.1f;
             intensity += 0.1f;
             glow[0] += 0.2f;

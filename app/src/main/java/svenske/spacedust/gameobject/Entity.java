@@ -2,7 +2,6 @@ package svenske.spacedust.gameobject;
 
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
-import svenske.spacedust.physics.PhysicsEngine;
 import svenske.spacedust.physics.PhysicsObject;
 import svenske.spacedust.utils.Global;
 

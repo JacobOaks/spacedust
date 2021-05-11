@@ -9,26 +9,25 @@ import java.util.Map;
 public class Animation {
 
     // Returns standard animation data for ships
-    public static Map<String, Animation> get_generic_ship_animations(int idle_atlas_row) {
+    public static Map<String, Animation> get_generic_ship_animations(int idle_atlas_row, int light_interval) {
         Map<String, Animation> anims = new HashMap<>();
 
+        int[] atlas_cols = new int[light_interval * 2];
+        atlas_cols[light_interval - 1] = 1;
+        atlas_cols[light_interval * 2 - 1] = 2;
+
         // Idle animation
-        Animation idle = new Animation(0.1f, 12, new int[] { idle_atlas_row },
-                new int[] { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2 }, new float[][] { null },
-                new BlendMode[] { BlendMode.JUST_TEXTURE });
+        Animation idle = new Animation(0.1f, light_interval * 2, new int[] { idle_atlas_row },
+                atlas_cols, new float[][] { null }, new BlendMode[] { BlendMode.JUST_TEXTURE });
         anims.put("idle", idle);
 
         // Engines animation
-        Animation engines = new Animation(0.1f, 12, new int[] { idle_atlas_row + 1 },
-                new int[] { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2 }, new float[][] { null },
-                new BlendMode[] { BlendMode.JUST_TEXTURE });
+        Animation engines = new Animation(0.1f, light_interval * 2, new int[] { idle_atlas_row + 1 },
+                atlas_cols, new float[][] { null }, new BlendMode[] { BlendMode.JUST_TEXTURE });
         anims.put("thrust", engines);
 
         return anims;
     }
-
-    // Constant describing the interval at which the generic ship animation has its lights on
-    public static final int GENERIC_SHIP_ANIMATION_LIGHT_INTERVAL = 6;
 
     // Animation attributes
     public float frame_time;
