@@ -8,14 +8,17 @@ import java.util.List;
 
 import svenske.spacedust.R;
 import svenske.spacedust.gameobject.NPC.Marauder;
+import svenske.spacedust.gameobject.NPC.NPC;
 import svenske.spacedust.gameobject.NPC.Sniper;
 import svenske.spacedust.graphics.BlendMode;
 import svenske.spacedust.graphics.Camera;
 import svenske.spacedust.graphics.ShaderProgram;
 import svenske.spacedust.graphics.Sprite;
+import svenske.spacedust.graphics.TextSprite;
 import svenske.spacedust.graphics.TextureAtlas;
 import svenske.spacedust.physics.PhysicsEngine;
 import svenske.spacedust.physics.PhysicsObject;
+import svenske.spacedust.stages.WorldStage;
 import svenske.spacedust.utils.Global;
 import svenske.spacedust.utils.Node;
 
@@ -35,9 +38,10 @@ public class World {
     private Player player;                      // The player in the world
 
     // Enemy info
-    private float max_enemies = 10f;            // Maximum enemies before they stop spawning
-    private float enemy_spawn_cooldown = 5f;    // Cool-down between enemy spawns
-    private float enemy_spawn_timer = 5f;       // Timer for enemy spawns
+    private float current_enemies = 0f;         // Current amount of enemies present
+    private float max_enemies = 12f;            // Maximum enemies before they stop spawning
+    private float enemy_spawn_cooldown = 1f;    // Cool-down between enemy spawns
+    private float enemy_spawn_timer = 1f;       // Timer for enemy spawns
 
     /**
      * A multiplier applied to the camera's view to get a scope of relevance. Collisions outside
@@ -58,6 +62,9 @@ public class World {
     // Projectile management - projectiles are dynamically removed every so often
     private float proj_mgmt_cooldown_timer = 2f;
     public static final float PROJ_MGMT_COOLDOWN = 2f;
+
+    // Score iterated on when enemies are killed
+    private int score = 0;
 
     // Constructs the world with the given continuous data from a previous destruction of context.
     public World(Node continuous_data) {
@@ -118,8 +125,8 @@ public class World {
             this.manage_projectiles();
         }
 
-        // TODO: Balanced enemy spawning
-        /* this.enemy_spawn_timer -= dt;
+        // Keep enemies around
+        this.enemy_spawn_timer -= dt;
         if (this.enemy_spawn_timer < 0f) {
             this.enemy_spawn_timer += this.enemy_spawn_cooldown;
             if (this.current_enemies < this.max_enemies) { // Spawn new enemy
@@ -129,12 +136,14 @@ public class World {
                     x = this.WORLD_WIDTH * (float)Math.random() - (this.WORLD_WIDTH / 2f);
                     y = this.WORLD_HEIGHT * (float)Math.random() - (this.WORLD_HEIGHT / 2f);
                 }
-                Enemy e = new Enemy(WorldStage.ship_ta, x, y, this);
-                e.set_target(this.player);
+                NPC e;
+                double random = Math.random();
+                if (random < 0.3) e = new Sniper(x, y, this).set_target(this.player);
+                else e = new Marauder(x, y, this).set_target(this.player);
                 this.add_game_object(e);
+                this.current_enemies++;
             }
         }
-         */
     }
 
     // Dynamically manage projectiles in the world (remove them if too far away)
@@ -219,15 +228,8 @@ public class World {
         this.world_objects.add(go);      // Add to list of game objects
         if (go instanceof PhysicsObject) // Add to sublist of physics objects if it is one
             this.physics_objects.add((PhysicsObject)go);
-        if (go instanceof Player) {
+        if (go instanceof Player)
             this.player = (Player)go;
-            this.add_game_object(new Sniper(-5f, 5f, this).set_target(this.player));
-            this.add_game_object(new Sniper(-3f, 5f, this).set_target(this.player));
-            this.add_game_object(new Sniper(3f, 5f, this).set_target(this.player));
-            this.add_game_object(new Marauder(-1f, 5f, this).set_target(this.player));
-            this.add_game_object(new Marauder(1f, 5f, this).set_target(this.player));
-            this.add_game_object(new Marauder(5f, 5f, this).set_target(this.player));
-        }
     }
 
     // Remove a GameObject from the World
@@ -242,7 +244,14 @@ public class World {
     public void on_object_create(GameObject new_object) { this.to_add.add(new_object); }
 
     // Responds to object deletions by removing them from the world
-    public void on_object_delete(GameObject to_delete) { this.to_delete.add(to_delete); }
+    public void on_object_delete(GameObject to_delete) {
+        this.to_delete.add(to_delete);
+        if (to_delete instanceof NPC) {
+            this.score++;
+            this.current_enemies--;
+            ((TextSprite)WorldStage.score_text.get_sprite()).set_text("Score: " + this.score);
+        }
+    }
 
     // Returns the World's camera
     public Camera get_camera() { return this.cam; }
