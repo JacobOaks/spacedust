@@ -1,4 +1,4 @@
-# spacedust
+# Spacedust
 
 ### Demo
 
