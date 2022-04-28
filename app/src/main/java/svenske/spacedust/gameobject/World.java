@@ -39,9 +39,7 @@ public class World {
 
     // Enemy info
     private float current_enemies = 0f;         // Current amount of enemies present
-    private float max_enemies = 12f;            // Maximum enemies before they stop spawning
-    private float enemy_spawn_cooldown = 1f;    // Cool-down between enemy spawns
-    private float enemy_spawn_timer = 1f;       // Timer for enemy spawns
+    private float max_enemies = 24f;            // Maximum enemies before they stop spawning
 
     /**
      * A multiplier applied to the camera's view to get a scope of relevance. Collisions outside
@@ -126,23 +124,19 @@ public class World {
         }
 
         // Keep enemies around
-        this.enemy_spawn_timer -= dt;
-        if (this.enemy_spawn_timer < 0f) {
-            this.enemy_spawn_timer += this.enemy_spawn_cooldown;
-            if (this.current_enemies < this.max_enemies) { // Spawn new enemy
-                float x = this.cam.get_x();
-                float y = this.cam.get_y();
-                while (!this.cam.out_of_view(x, y, 1.5f)) {
-                    x = this.WORLD_WIDTH * (float)Math.random() - (this.WORLD_WIDTH / 2f);
-                    y = this.WORLD_HEIGHT * (float)Math.random() - (this.WORLD_HEIGHT / 2f);
-                }
-                NPC e;
-                double random = Math.random();
-                if (random < 0.3) e = new Sniper(x, y, this).set_target(this.player);
-                else e = new Marauder(x, y, this).set_target(this.player);
-                this.add_game_object(e);
-                this.current_enemies++;
+        while (this.current_enemies < this.max_enemies) { // Spawn new enemy
+            float x = this.cam.get_x();
+            float y = this.cam.get_y();
+            while (!this.cam.out_of_view(x, y, 1.5f)) {
+                x = this.WORLD_WIDTH * (float)Math.random() - (this.WORLD_WIDTH / 2f);
+                y = this.WORLD_HEIGHT * (float)Math.random() - (this.WORLD_HEIGHT / 2f);
             }
+            NPC e;
+            double random = Math.random();
+            if (random < 0.3) e = new Sniper(x, y, this).set_target(this.player);
+            else e = new Marauder(x, y, this).set_target(this.player);
+            this.add_game_object(e);
+            this.current_enemies++;
         }
     }
 
